@@ -110,9 +110,9 @@
               <div class="col-md-6">
                 <h4>Connect</h4>
                 <p>
-                  <a href="https://www.linkedin.com/in/shivamnegi/" target="_blank" class="btn btn-default"><i class="fa fa-linkedin"></i> LinkedIn</a>
-                  <a href="https://twitter.com/curiositywander" target="_blank" class="btn btn-default"><i class="fa fa-twitter"></i> Twitter</a>
-                  <a href="https://drive.google.com/file/d/1qGu2xm6hlrrUR4S8bKe5Wit0NstpYJzC/view?usp=sharing" target="_blank" class="btn btn-primary"><i class="fa fa-download"></i> Resume</a>
+                  <a href="https://www.linkedin.com/in/shivamnegi/" target="_blank" class="btn connect-btn linkedin-btn" style="margin: 5px; background: #0077b5; border: none; color: white; font-weight: 600; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"><i class="fa fa-linkedin"></i> LinkedIn</a>
+                  <a href="https://twitter.com/curiositywander" target="_blank" class="btn connect-btn twitter-btn" style="margin: 5px; background: #1da1f2; border: none; color: white; font-weight: 600; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"><i class="fa fa-twitter"></i> Twitter</a>
+                  <a href="#" onclick="requestResume(); return false;" class="btn connect-btn resume-btn" style="margin: 5px; background: #28a745; border: none; color: white; font-weight: 600; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"><i class="fa fa-download"></i> Request Resume</a>
                 </p>
               </div>
             </div>
@@ -569,8 +569,7 @@
       </form>
       <div class="social">
         <ul>
-          <li><a href="https://www.facebook.com/shivamnegitravels"><i class="fa fa-facebook"></i></a></li>
-          <li><a href="twitter.com/curiositywander"><i class="fa fa-twitter"></i></a></li>
+          <li><a href="https://twitter.com/curiositywander"><i class="fa fa-twitter"></i></a></li>
           <li><a href="https://github.com/shivamnegi92/"><i class="fa fa-github"></i></a></li>
           <li><a href="https://www.instagram.com/nomadnegi/"><i class="fa fa-instagram"></i></a></li>
           <li><a href="https://www.linkedin.com/in/shivamnegi/"><i class="fa fa-linkedin"></i></a></li>
@@ -597,5 +596,77 @@
 <script type="text/javascript" src="js/jqBootstrapValidation.js"></script> 
 <script type="text/javascript" src="js/contact_me.js"></script> 
 <script type="text/javascript" src="js/main.js"></script>
+
+<style>
+/* Custom Connect Button Styles */
+.connect-btn {
+    display: inline-block !important;
+    text-decoration: none !important;
+    transform: scale(1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.linkedin-btn:hover {
+    background: #005885 !important;
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0,119,181,0.4) !important;
+    color: white !important;
+}
+
+.twitter-btn:hover {
+    background: #1991db !important;
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(29,161,242,0.4) !important;
+    color: white !important;
+}
+
+.resume-btn:hover {
+    background: #218838 !important;
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(40,167,69,0.4) !important;
+    color: white !important;
+}
+
+/* Override Bootstrap default button hover states */
+.connect-btn:hover,
+.connect-btn:focus,
+.connect-btn:active {
+    color: white !important;
+    text-decoration: none !important;
+}
+
+.connect-btn:active {
+    transform: scale(0.98);
+}
+</style>
+
+<script>
+function requestResume() {
+    // Get visitor info
+    var timestamp = new Date().toLocaleString();
+    var userAgent = navigator.userAgent;
+    var referrer = document.referrer || 'Direct visit';
+    
+    // Create email subject and body
+    var subject = 'Resume Request from Website - ' + timestamp;
+    var body = 'Someone has requested your resume through your website.\n\n' +
+               'Timestamp: ' + timestamp + '\n' +
+               'User Agent: ' + userAgent + '\n' +
+               'Referrer: ' + referrer + '\n' +
+               'Page URL: ' + window.location.href + '\n\n' +
+               'Please send your latest resume to this visitor.';
+    
+    // Create mailto link
+    var mailtoLink = 'mailto:negi.sh@husky.neu.edu' +
+                     '?subject=' + encodeURIComponent(subject) +
+                     '&body=' + encodeURIComponent(body);
+    
+    // Open email client
+    window.location.href = mailtoLink;
+    
+    // Show confirmation to user
+    alert('Thank you for your interest! An email request has been sent to Shivam. You should receive the resume shortly via email.');
+}
+</script>
 </body>
 </html>
