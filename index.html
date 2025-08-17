@@ -136,46 +136,93 @@
   </div>
 </div>
 <!-- Skills Section -->
-<div id="skills" class="text-center">
+<div id="skills" style="background: #f8f9fa; padding: 40px 0;">
   <div class="container">
     <div class="section-title center">
-      <h2>Core Skills & Research Interests</h2>
+      <h2>Core Expertise</h2>
       <hr>
     </div>
-    <div class="row">
-      <div class="col-md-4 col-sm-6 skill"> <span class="chart" data-percent="98"> <span class="percent">98</span> </span>
-        <h4>Artificial Intelligence (AI)</h4>
-      </div>
-      <div class="col-md-4 col-sm-6 skill"> <span class="chart" data-percent="97"> <span class="percent">97</span> </span>
-        <h4>GenAI & Large Language Models (LLMs)</h4>
-      </div>
-      <div class="col-md-4 col-sm-6 skill"> <span class="chart" data-percent="95"> <span class="percent">95</span> </span>
-        <h4>Deep Learning</h4>
-      </div>
-      <div class="col-md-4 col-sm-6 skill"> <span class="chart" data-percent="95"> <span class="percent">95</span> </span>
-        <h4>Natural Language Processing (NLP)</h4>
-      </div>
-      <div class="col-md-4 col-sm-6 skill"> <span class="chart" data-percent="93"> <span class="percent">93</span> </span>
-        <h4>Machine Learning Engineering</h4>
-      </div>
-      <div class="col-md-4 col-sm-6 skill"> <span class="chart" data-percent="92"> <span class="percent">92</span> </span>
-        <h4>Cloud AI (AWS, GCP, Azure)</h4>
-      </div>
-      <div class="col-md-4 col-sm-6 skill"> <span class="chart" data-percent="90"> <span class="percent">90</span> </span>
-        <h4>Research & Mentoring</h4>
-      </div>
-      <div class="col-md-4 col-sm-6 skill"> <span class="chart" data-percent="90"> <span class="percent">90</span> </span>
-        <h4>Data Science for Social Good</h4>
+    
+    <!-- Primary Skills - Compact Tag Style -->
+    <div class="row" style="margin-bottom: 25px;">
+      <div class="col-md-12 text-center">
+        <div class="skill-tags" style="margin-bottom: 20px;">
+          <span class="skill-tag primary">🤖 Artificial Intelligence</span>
+          <span class="skill-tag primary">🧠 GenAI & LLMs</span>
+          <span class="skill-tag primary">🔬 Deep Learning</span>
+          <span class="skill-tag primary">💬 NLP</span>
+          <span class="skill-tag secondary">⚙️ ML Engineering</span>
+          <span class="skill-tag secondary">☁️ Cloud AI</span>
+          <span class="skill-tag secondary">📚 Research</span>
+          <span class="skill-tag secondary">🌍 Data Science for Good</span>
+        </div>
       </div>
     </div>
-    <div class="row" style="margin-top:2em;">
-      <div class="col-md-12">
-        <h4>Technical Stack</h4>
-        <p>Python, R, PyTorch, TensorFlow, HuggingFace, Scikit-learn, SQL, Spark, Docker, Kubernetes, AWS Lambda, SageMaker, GCP Vertex AI, Azure ML, Git, CI/CD, REST APIs, Streamlit, FastAPI, and more.</p>
+
+    <!-- Technical Stack - Organized Categories -->
+    <div class="row">
+      <div class="col-md-6">
+        <div class="tech-category" style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+          <h5 style="color: #333; margin-bottom: 10px; font-weight: 600;">🚀 AI/ML Frameworks</h5>
+          <p style="margin: 0; color: #666;">PyTorch, TensorFlow, HuggingFace, Scikit-learn, LangChain, OpenAI API</p>
+        </div>
+        <div class="tech-category" style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+          <h5 style="color: #333; margin-bottom: 10px; font-weight: 600;">💾 Data & Analytics</h5>
+          <p style="margin: 0; color: #666;">Python, R, SQL, Spark, Pandas, NumPy, Jupyter</p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="tech-category" style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+          <h5 style="color: #333; margin-bottom: 10px; font-weight: 600;">☁️ Cloud Platforms</h5>
+          <p style="margin: 0; color: #666;">AWS (Lambda, SageMaker), GCP (Vertex AI), Azure ML, Docker, Kubernetes</p>
+        </div>
+        <div class="tech-category" style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+          <h5 style="color: #333; margin-bottom: 10px; font-weight: 600;">🛠️ Development</h5>
+          <p style="margin: 0; color: #666;">Git, CI/CD, REST APIs, FastAPI, Streamlit, MLOps, Model Deployment</p>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
+<style>
+.skill-tag {
+  display: inline-block;
+  padding: 8px 16px;
+  margin: 5px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.skill-tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.skill-tag.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.skill-tag.secondary {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+}
+
+.tech-category h5 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tech-category:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+  transition: all 0.3s ease;
+}
+</style>
 <!-- Publications & Profiles Section -->
 <div id="publications" class="text-center" style="background:#f8f8f8; padding:40px 0 30px 0;">
   <div class="container" style="margin-bottom:2em;">
