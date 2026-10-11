@@ -45,8 +45,7 @@
       buttons.forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
       var f = b.dataset.filter;
       document.querySelectorAll(".pub").forEach(function (p) { p.hidden = f !== "all" && p.dataset.type !== f; });
-      document.getElementById("pub-status").textContent =
-        document.querySelectorAll(".pub:not([hidden])").length + " publications shown";
+      document.getElementById("pub-status").textContent = "Showing: " + b.textContent;
     });
   });
 
