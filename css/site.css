@@ -188,6 +188,20 @@ section.dark a { color: #9ec0ff; }
 .sw .tags li { border: 0; border-radius: 999px; background: #eef2ff; color: #2338a8; font-size: .76rem; font-weight: 700; padding: .1rem .55rem; }
 .sw .go { font-weight: 700; text-decoration: none; }
 
+/* Writing teaser */
+.wguides { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+.wguides a { display: flex; flex-direction: column; gap: .5rem; height: 100%; padding: 1.3rem; border-radius: var(--radius); background: var(--ink); color: #fff; text-decoration: none; position: relative; overflow: hidden; transition: transform .2s; }
+.wguides a::after { content: ""; position: absolute; width: 180px; height: 180px; right: -60px; bottom: -60px; border-radius: 50%; background: radial-gradient(circle, rgba(139,92,246,.6), transparent 70%); }
+.wguides a:hover { transform: translateY(-4px); }
+.wguides .wk { font-size: .74rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #7dd3fc; }
+.wguides strong { font-size: 1.08rem; line-height: 1.35; flex: 1; position: relative; }
+.wguides .wgo { color: #c7d2fe; font-weight: 600; font-size: .9rem; position: relative; }
+.shelf-h { margin: 2.2rem 0 1rem; font-size: 1.05rem; }
+.shelf { list-style: none; margin: 0; padding: 1.2rem 1rem 0; display: flex; gap: 1.1rem; overflow-x: auto; border-bottom: 10px solid #8b6b4a; border-radius: 0 0 6px 6px; background: linear-gradient(transparent 85%, rgba(139,107,74,.18)); }
+.shelf a { display: block; transition: transform .25s; }
+.shelf a:hover { transform: translateY(-8px) rotate(-2deg); }
+.shelf img { display: block; width: 120px; height: 170px; object-fit: cover; border-radius: 2px 6px 6px 2px; box-shadow: 6px 8px 16px -6px rgba(0,0,0,.5); }
+
 /* Talks & mentoring */
 .split { display: grid; grid-template-columns: 1.1fr 1fr; gap: 2rem; }
 @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
