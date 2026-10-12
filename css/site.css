@@ -30,7 +30,7 @@ p { margin: 0 0 .9rem; }
 header.site { position: fixed; inset: 0 0 auto 0; z-index: 50; transition: background .25s, border-color .25s; border-bottom: 1px solid transparent; }
 header.site.scrolled { background: rgba(11, 16, 32, .88); backdrop-filter: blur(10px); border-color: rgba(255,255,255,.08); }
 header.site .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 3.75rem; gap: 1rem; }
-.brand { color: #fff; font-weight: 800; text-decoration: none; letter-spacing: -.01em; display: inline-flex; align-items: center; gap: .55rem; }
+.brand { color: #fff; font-weight: 800; text-decoration: none; letter-spacing: -.01em; display: inline-flex; align-items: center; gap: .55rem; min-height: 44px; padding: .35rem .5rem .35rem 0; border-radius: 8px; }
 .brand .mono { width: 30px; height: 30px; border-radius: 8px; background: var(--grad); display: grid; place-items: center; font-size: .8rem; color: #fff; }
 nav ul { list-style: none; display: flex; gap: .2rem 1.1rem; margin: 0; padding: 0; flex-wrap: wrap; }
 nav a { color: var(--on-ink-muted); text-decoration: none; font-size: .92rem; font-weight: 500; padding: .5rem 0; display: inline-block; }

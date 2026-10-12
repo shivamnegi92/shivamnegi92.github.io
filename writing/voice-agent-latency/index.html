@@ -24,15 +24,16 @@
   <a class="brand" href="../../"><span class="mono" aria-hidden="true">SN</span>Shivam Negi</a>
   <nav aria-label="Primary"><a href="../../#research">Research</a><a href="../../writing/">Writing</a><a href="../../writing/#reviews">Book reviews</a><a href="../../#contact">Contact</a></nav>
 </div></header>
-<main id="main">
+<main id="main" tabindex="-1">
 <article>
-  <header class="ahero guide"><div class="wrap">
-    <p class="crumbs"><a href="../">Writing</a> / Guide</p>
-    <h1>Why Your Voice Agent Feels Rude: Latency, Turn-Taking, and Barge-In</h1>
+  <header class="ahero guide" aria-labelledby="article-title"><div class="wrap">
+    <p class="crumbs"><a href="../">Writing</a> / Field guide</p>
+    <div class="kickerline"><span class="issue">SYSTEMS JOURNAL</span><span class="sep">/</span><span>FIELD NOTE 03</span><span class="sep">/</span><span>Field guide</span></div>
+    <h1 id="article-title">Why Your Voice Agent Feels Rude: Latency, Turn-Taking, and Barge-In</h1>
     <p class="dek">A systems view of real-time voice agents, why 800 ms feels broken, and how to engineer the pipeline, the turn-taking model, and the evals so conversations feel human.</p>
-    <p class="meta"><time datetime="2026-10-11">Oct 11, 2026</time> &middot; 14 min read &middot; 11 diagrams</p>
+    <p class="meta"><span class="meta-item"><time datetime="2026-10-11">Oct 11, 2026</time></span><span aria-hidden="true">·</span><span class="meta-item">14 min read</span><span aria-hidden="true">·</span><span class="meta-item">11 systems diagrams</span></p>
     <ul class="tags"><li>voice agents</li><li>latency</li><li>turn-taking</li><li>evaluation</li></ul>
-    
+
   </div></header>
   <div class="wrap layout">
     <aside class="toc" aria-label="On this page"><p>On this page</p><ol><li><a href="#two-architectures-two-failure-profiles">Two architectures, two failure profiles</a></li><li><a href="#the-latency-budget">The latency budget</a></li><li><a href="#overlap-everything">Overlap everything</a></li><li><a href="#turn-taking-is-a-prediction-problem">Turn-taking is a prediction problem</a></li><li><a href="#barge-in-let-users-interrupt">Barge-in: let users interrupt</a></li><li><a href="#measure-what-users-feel">Measure what users feel</a></li><li><a href="#define-latency-before-optimizing-it">Define latency before optimizing it</a></li><li><a href="#build-a-budget-around-critical-path">Build a budget around critical path</a></li><li><a href="#engineer-endpointing-and-turn-taking">Engineer endpointing and turn-taking</a></li><li><a href="#barge-in-is-a-conversation-state-problem">Barge-in is a conversation-state problem</a></li><li><a href="#trg-report-the-behavior-not-just-the-waveform">TRG: report the behavior, not just the waveform</a></li><li><a href="#reproducible-evaluation-and-operations">Reproducible evaluation and operations</a></li><li><a href="#a-practical-implementation-sequence">A practical implementation sequence</a></li><li><a href="#latency-optimization-without-breaking-trust">Latency optimization without breaking trust</a></li><li><a href="#failure-recovery-and-conversation-state">Failure recovery and conversation state</a></li><li><a href="#product-and-safety-trade-offs">Product and safety trade-offs</a></li><li><a href="#a-review-checklist-for-a-voice-agent-release">A review checklist for a voice-agent release</a></li><li><a href="#key-takeaways">Key takeaways</a></li></ol></aside>
@@ -111,7 +112,7 @@
 </article>
 </main>
 <footer class="foot"><div class="wrap">
-<p>&copy; 2026 Shivam Negi. Views are my own and do not represent any employer. Book covers are shown for identification and review purposes. <a href="../../writing/feed.xml">RSS</a></p>
+<p>&copy; 2026 Shivam Negi. Views are my own and do not represent any employer. Book covers are shown for identification and review purposes. Simple Icons brand marks are used under CC0 1.0. Trademarks belong to their respective owners; appearance indicates discussion only, not endorsement or affiliation. <a href="../../writing/feed.xml">RSS</a></p>
 </div></footer>
 <script src="../../js/articles.js"></script>
 </body></html>

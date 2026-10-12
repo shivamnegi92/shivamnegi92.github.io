@@ -1,6 +1,7 @@
 ---
 title: How to Shrink a Transformer for CPU Serving Without Losing Your Mind (or Accuracy)
 kind: guide
+brands: onnx
 date: 2026-10-11
 order: 2
 summary: A field manual for distilling, pruning, and quantizing language models for CPU-only, latency-critical serving, and why most of the tricks fail before one works.

@@ -24,15 +24,16 @@
   <a class="brand" href="../../"><span class="mono" aria-hidden="true">SN</span>Shivam Negi</a>
   <nav aria-label="Primary"><a href="../../#research">Research</a><a href="../../writing/">Writing</a><a href="../../writing/#reviews">Book reviews</a><a href="../../#contact">Contact</a></nav>
 </div></header>
-<main id="main">
+<main id="main" tabindex="-1">
 <article>
-  <header class="ahero guide"><div class="wrap">
-    <p class="crumbs"><a href="../">Writing</a> / Guide</p>
-    <h1>How to Ship a Model Safely: Shadow, Canary, and the Rollback Button</h1>
+  <header class="ahero guide" aria-labelledby="article-title"><div class="wrap">
+    <p class="crumbs"><a href="../">Writing</a> / Field guide</p>
+    <div class="kickerline"><span class="issue">SYSTEMS JOURNAL</span><span class="sep">/</span><span>FIELD NOTE 09</span><span class="sep">/</span><span>Field guide</span></div>
+    <h1 id="article-title">How to Ship a Model Safely: Shadow, Canary, and the Rollback Button</h1>
     <p class="dek">Offline metrics do not predict production. A deployment ladder of shadow traffic, canaries with guardrail metrics, and automatic rollback, the SRE way.</p>
-    <p class="meta"><time datetime="2026-10-11">Oct 11, 2026</time> &middot; 12 min read &middot; 11 diagrams</p>
+    <p class="meta"><span class="meta-item"><time datetime="2026-10-11">Oct 11, 2026</time></span><span aria-hidden="true">·</span><span class="meta-item">12 min read</span><span aria-hidden="true">·</span><span class="meta-item">11 systems diagrams</span></p>
     <ul class="tags"><li>MLOps</li><li>deployment</li><li>canary</li><li>reliability</li></ul>
-    
+
   </div></header>
   <div class="wrap layout">
     <aside class="toc" aria-label="On this page"><p>On this page</p><ol><li><a href="#the-deployment-ladder">The deployment ladder</a></li><li><a href="#shadow-mode-free-truth">Shadow mode: free truth</a></li><li><a href="#canary-with-guardrail-metrics">Canary with guardrail metrics</a></li><li><a href="#automate-the-decision">Automate the decision</a></li><li><a href="#watch-for-training-serving-skew">Watch for training-serving skew</a></li><li><a href="#make-the-rollout-a-controlled-experiment">Make the rollout a controlled experiment</a></li><li><a href="#turn-an-slo-into-an-error-budget">Turn an SLO into an error budget</a></li><li><a href="#build-the-deployment-plumbing">Build the deployment plumbing</a></li><li><a href="#failure-modes-worth-rehearsing">Failure modes worth rehearsing</a></li><li><a href="#a-practical-preflight-checklist">A practical preflight checklist</a></li><li><a href="#incident-readiness-and-post-rollout-learning">Incident readiness and post-rollout learning</a></li><li><a href="#choose-rollout-granularity-with-risk-in-mind">Choose rollout granularity with risk in mind</a></li><li><a href="#make-rollout-evidence-reviewable">Make rollout evidence reviewable</a></li><li><a href="#key-takeaways">Key takeaways</a></li></ol></aside>
@@ -99,7 +100,7 @@
 <p>A useful drill is to inject a candidate that returns malformed schema for a small internal cohort. Verify that schema validation blocks user-visible output, alerting identifies the release, assignment can be frozen, and rollback restores the previous artifact. Repeat with a latency failure and with a missing metric feed. A system that only practices model-quality regressions may fail on the very operational faults that make rollback necessary. Run drills in a controlled environment and ensure injected failures cannot affect real users.</p>
 <h2 id="choose-rollout-granularity-with-risk-in-mind">Choose rollout granularity with risk in mind</h2>
 <p>The familiar 1%, 10%, 50%, 100% ladder is only an example; it is not a safe universal recipe. A low-volume service may need a longer period to collect enough evidence at a small percentage. A high-volume service can create a large absolute number of affected requests even at a small share. Consider both the fraction and the expected number of exposed users, the reversibility of the model’s actions, the harm severity, and whether impact is concentrated in a particular group. For an irreversible downstream action, use a stricter approval and verification path than for a reversible ranking change.</p>
-<div class="table" tabindex="0" role="region" aria-label="Scrollable data table"><table><thead><tr><th>Release context</th><th>Safer emphasis</th></tr></thead><tbody><tr><td>New model, reversible output</td><td>Shadow comparison, sampled review, then small sticky cohort</td></tr><tr><td>Model triggers external side effects</td><td>Authorization tests, idempotency, explicit confirmation, verified state</td></tr><tr><td>Low traffic or delayed labels</td><td>Longer observation, conservative hold, qualitative review</td></tr><tr><td>High-risk or regulated decision</td><td>Human oversight, subgroup review, policy approval, audit trail</td></tr><tr><td>Shared runtime or major dependency change</td><td>Capacity test and staged infrastructure rollout independent of model quality</td></tr></tbody></table></div>
+<div class="table" tabindex="0" role="group"><table><thead><tr><th>Release context</th><th>Safer emphasis</th></tr></thead><tbody><tr><td>New model, reversible output</td><td>Shadow comparison, sampled review, then small sticky cohort</td></tr><tr><td>Model triggers external side effects</td><td>Authorization tests, idempotency, explicit confirmation, verified state</td></tr><tr><td>Low traffic or delayed labels</td><td>Longer observation, conservative hold, qualitative review</td></tr><tr><td>High-risk or regulated decision</td><td>Human oversight, subgroup review, policy approval, audit trail</td></tr><tr><td>Shared runtime or major dependency change</td><td>Capacity test and staged infrastructure rollout independent of model quality</td></tr></tbody></table></div>
 <p>This table is a design aid, not compliance advice. Product, legal, security, and domain owners should define the risk class and required review. A metric threshold cannot decide whether a category of use is acceptable; it can only help enforce a policy already decided by accountable people.</p>
 <h2 id="make-rollout-evidence-reviewable">Make rollout evidence reviewable</h2>
 <p>A release record should make it possible for someone who was not on the launch call to reconstruct the decision. Save the candidate and baseline identifiers, assignment policy, metric query version, observation window, exclusions, sample counts, confidence method, reviewer sampling policy, and final decision with its owner. Include a short note about known blind spots, such as an underrepresented locale or a delayed business outcome. Do not store raw prompts merely to make a report feel complete; aggregate safely and retain only reviewed samples under the team’s data policy.</p>
@@ -115,7 +116,7 @@
 </article>
 </main>
 <footer class="foot"><div class="wrap">
-<p>&copy; 2026 Shivam Negi. Views are my own and do not represent any employer. Book covers are shown for identification and review purposes. <a href="../../writing/feed.xml">RSS</a></p>
+<p>&copy; 2026 Shivam Negi. Views are my own and do not represent any employer. Book covers are shown for identification and review purposes. Simple Icons brand marks are used under CC0 1.0. Trademarks belong to their respective owners; appearance indicates discussion only, not endorsement or affiliation. <a href="../../writing/feed.xml">RSS</a></p>
 </div></footer>
 <script src="../../js/articles.js"></script>
 </body></html>

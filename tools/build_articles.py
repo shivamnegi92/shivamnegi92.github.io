@@ -36,6 +36,53 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "articles"
 OUT = ROOT / "writing"
 SITE = "https://shivamnegi92.github.io"
+BRAND_NAMES = {
+    "meta": "Meta", "huggingface": "Hugging Face", "nvidia": "NVIDIA",
+    "openai": "OpenAI", "google": "Google", "pytorch": "PyTorch",
+    "ollama": "Ollama", "anthropic": "Anthropic", "orcid": "ORCID",
+    "arxiv": "arXiv", "googlecloud": "Google Cloud", "onnx": "ONNX",
+}
+BRAND_LICENSE = "Simple Icons brand marks are used under CC0 1.0. Trademarks belong to their respective owners; appearance indicates discussion only, not endorsement or affiliation."
+BRAND_URLS = {
+    "meta": "https://about.meta.com/", "huggingface": "https://huggingface.co/",
+    "nvidia": "https://www.nvidia.com/", "openai": "https://openai.com/",
+    "google": "https://about.google/", "pytorch": "https://pytorch.org/",
+    "ollama": "https://ollama.com/", "anthropic": "https://www.anthropic.com/",
+    "orcid": "https://orcid.org/", "arxiv": "https://arxiv.org/",
+    "googlecloud": "https://cloud.google.com/", "onnx": "https://onnx.ai/",
+}
+
+
+def brand_rail(a: dict) -> str:
+    brands = a.get("brands", [])
+    if not brands:
+        return ""
+    chips = []
+    for brand in brands:
+        name = BRAND_NAMES[brand]
+        url = BRAND_URLS[brand]
+        chips.append(
+            f'<a class="brand-chip" href="{url}" rel="noopener noreferrer">'
+            f'<img src="../../img/logos/{brand}.svg" alt="" width="20" height="20" loading="eager">'
+            f'<span>{escape(name)}</span></a>'
+        )
+    return ('<div class="brand-rail" aria-label="Technologies discussed in this article">'
+            '<span class="rail-label">SYSTEMS DISCUSSED · NOT AN ENDORSEMENT</span>'
+            + "".join(chips) + "</div>")
+
+
+def validate_article(a: dict) -> list[str]:
+    errors = []
+    brands = a.get("brands", [])
+    if len(brands) != len(set(brands)):
+        errors.append(f"{a['slug']}: duplicate brand IDs")
+    unknown = sorted(set(brands) - set(BRAND_NAMES))
+    if unknown:
+        errors.append(f"{a['slug']}: unknown brand IDs: {', '.join(unknown)}")
+    for b in brands:
+        if not (ROOT / "img" / "logos" / f"{b}.svg").is_file():
+            errors.append(f"{a['slug']}: missing brand asset img/logos/{b}.svg")
+    return errors
 
 
 # ---------------------------------------------------------------- parsing
@@ -53,6 +100,7 @@ def parse(path: Path) -> dict:
             raise ValueError(f"{path.name}: front matter needs '{req}'")
     meta.setdefault("slug", path.stem)
     meta["tags"] = [t.strip() for t in meta.get("tags", "").split(",") if t.strip()]
+    meta["brands"] = [b.strip() for b in meta.get("brands", "").split(",") if b.strip()]
     if meta["kind"] == "review":
         parts = [p.strip() for p in meta["book"].split("|")]
         meta["book"] = dict(zip(("title", "author", "pub", "isbn", "img"), parts))
@@ -145,7 +193,7 @@ def body_html(md: str, slug: str) -> tuple[str, list[tuple[str, str]], int]:
             head, rest = rows[0], [r for r in rows[1:] if not set("".join(r)) <= set("-: ")]
             th = "".join(f"<th>{inline(c)}</th>" for c in head)
             tb = "".join("<tr>" + "".join(f"<td>{inline(c)}</td>" for c in r) + "</tr>" for r in rest)
-            out.append(f'<div class="table" tabindex="0" role="region" aria-label="Scrollable data table"><table><thead><tr>{th}</tr></thead><tbody>{tb}</tbody></table></div>')
+            out.append(f'<div class="table" tabindex="0" role="group"><table><thead><tr>{th}</tr></thead><tbody>{tb}</tbody></table></div>')
             continue
         if re.match(r"(- |\d+\. )", s):
             flush()
@@ -192,7 +240,7 @@ HEAD = """<!doctype html>
 """
 
 FOOT = """<footer class="foot"><div class="wrap">
-<p>&copy; {year} Shivam Negi. Views are my own and do not represent any employer. Book covers are shown for identification and review purposes. <a href="{base}writing/feed.xml">RSS</a></p>
+<p>&copy; {year} Shivam Negi. Views are my own and do not represent any employer. Book covers are shown for identification and review purposes. {brand_disclosure} <a href="{base}writing/feed.xml">RSS</a></p>
 </div></footer>
 <script src="{base}js/articles.js"></script>
 </body></html>
@@ -214,7 +262,8 @@ def article_page(a: dict, prev_a: dict | None, next_a: dict | None) -> str:
     html, toc, figs = body_html(a["body"], a["slug"])
     url = f"{SITE}/writing/{a['slug']}/"
     minutes = read_minutes(a["body"])
-    kind_label = "Book review" if a["kind"] == "review" else "Guide"
+    kind_label = "Book review" if a["kind"] == "review" else "Field guide"
+    issue = int(a.get("order", 1))
     ld = ('<script type="application/ld+json">{"@context":"https://schema.org","@type":"%s","headline":%s,'
           '"datePublished":"%s","author":{"@type":"Person","name":"Shivam Negi","url":"%s/"}%s}</script>') % (
         "Review" if a["kind"] == "review" else "TechArticle", _json(a["title"]), a["date"], SITE,
@@ -238,8 +287,11 @@ def article_page(a: dict, prev_a: dict | None, next_a: dict | None) -> str:
   </dl>
   <p class="verdict"><span>Verdict</span>{inline(a['verdict'])}</p>
 </div>"""
+    hero_extras = "\n    ".join(part for part in (brand_rail(a), hero_book) if part)
     toc_html = "".join(f'<li><a href="#{h}">{escape(t)}</a></li>' for h, t in toc)
     tags = "".join(f"<li>{escape(t)}</li>" for t in a["tags"])
+    hero_kicker = (f'<span class="issue">SYSTEMS JOURNAL</span><span class="sep">/</span>'
+                   f'<span>FIELD NOTE {issue:02d}</span><span class="sep">/</span><span>{kind_label}</span>')
     nav = ""
     if prev_a or next_a:
         nav = '<nav class="pn" aria-label="More articles">'
@@ -248,15 +300,16 @@ def article_page(a: dict, prev_a: dict | None, next_a: dict | None) -> str:
         if next_a:
             nav += f'<a class="next" href="../{next_a["slug"]}/"><span>Next</span>{escape(next_a["title"])}</a>'
         nav += "</nav>"
-    return head + f"""<main id="main">
+    return head + f"""<main id="main" tabindex="-1">
 <article>
-  <header class="ahero {a['kind']}"><div class="wrap">
+  <header class="ahero {a['kind']}" aria-labelledby="article-title"><div class="wrap">
     <p class="crumbs"><a href="../">Writing</a> / {kind_label}</p>
-    <h1>{inline(a['title'])}</h1>
+    <div class="kickerline">{hero_kicker}</div>
+    <h1 id="article-title">{inline(a['title'])}</h1>
     <p class="dek">{inline(a['summary'])}</p>
-    <p class="meta"><time datetime="{a['date']}">{_pretty(a['date'])}</time> &middot; {minutes} min read &middot; {figs} diagrams</p>
+    <p class="meta"><span class="meta-item"><time datetime="{a['date']}">{_pretty(a['date'])}</time></span><span aria-hidden="true">·</span><span class="meta-item">{minutes} min read</span><span aria-hidden="true">·</span><span class="meta-item">{figs} systems diagrams</span></p>
     <ul class="tags">{tags}</ul>
-    {hero_book}
+{hero_extras}
   </div></header>
   <div class="wrap layout">
     <aside class="toc" aria-label="On this page"><p>On this page</p><ol>{toc_html}</ol></aside>
@@ -267,7 +320,7 @@ def article_page(a: dict, prev_a: dict | None, next_a: dict | None) -> str:
   </div>
 </article>
 </main>
-""" + FOOT.format(year=date.today().year, base="../../")
+""" + FOOT.format(year=date.today().year, base="../../", brand_disclosure=escape(BRAND_LICENSE))
 
 
 def _json(s: str) -> str:
@@ -289,12 +342,15 @@ def card(a: dict) -> str:
         b = a["book"]
         return f"""<li class="rcard"><a href="{a['slug']}/">
   <img src="../{b['img']}" alt="" width="120" height="180" loading="lazy">
-  <div><span class="kicker">Book review &middot; {stars(float(a['rating']))}</span>
+  <div><span class="kicker">SYSTEMS JOURNAL · BOOK REVIEW · {stars(float(a['rating']))}</span>
   <h3>{escape(b['title'])}</h3><p class="by">{escape(b['author'])}</p>
   <p>{inline(a['verdict'])}</p><ul class="tags">{tags}</ul></div></a></li>"""
+    rails = "".join(f"<li>{escape(BRAND_NAMES[b])}</li>" for b in a.get("brands", []))
+    rail = (f'<div class="brand-rail index-rail" aria-label="Technologies discussed">'
+            f'<span class="rail-label">SYSTEMS DISCUSSED · NOT AN ENDORSEMENT</span><ul>{rails}</ul></div>') if rails else ""
     return f"""<li class="gcard"><a href="{a['slug']}/">
-  <span class="kicker">Guide &middot; {read_minutes(a['body'])} min</span>
-  <h3>{escape(a['title'])}</h3><p>{inline(a['summary'])}</p><ul class="tags">{tags}</ul></a></li>"""
+  <span class="kicker">SYSTEMS JOURNAL · FIELD GUIDE · {read_minutes(a['body'])} MIN</span>
+  <h3>{escape(a['title'])}</h3><p>{inline(a['summary'])}</p>{rail}<ul class="tags">{tags}</ul></a></li>"""
 
 
 def index_page(arts: list[dict]) -> str:
@@ -303,11 +359,12 @@ def index_page(arts: list[dict]) -> str:
     head = HEAD.format(title="Writing", desc="Diagram-heavy guides on AI systems and reviews of the books that shaped them.",
                        url=f"{SITE}/writing/", ogtype="website", base="../", ld="",
                        image=f"{SITE}/img/about.jpg")
-    return head + f"""<main id="main">
+    return head + f"""<main id="main" tabindex="-1">
 <header class="ahero idx"><div class="wrap">
   <p class="crumbs"><a href="../">Home</a> / Writing</p>
-  <h1>Writing</h1>
-  <p class="dek">Field notes from building AI systems in production. How-to and why-it-works guides drawn as diagrams, plus reviews of the books every AI and data engineer should read.</p>
+  <div class="kickerline"><span class="issue">SYSTEMS JOURNAL</span><span class="sep">/</span><span>RESEARCH AND PRACTICE</span></div>
+  <h1>Systems, not hype.</h1>
+  <p class="dek">Field notes on building, evaluating, and operating AI systems. Practical guides, original diagrams, and transparent reviews of the books shaping the work.</p>
   <p class="meta">{len(guides)} guides &middot; {len(reviews)} book reviews &middot; <a href="feed.xml">RSS</a></p>
 </div></header>
 <div class="wrap">
@@ -315,7 +372,7 @@ def index_page(arts: list[dict]) -> str:
   <section id="reviews" aria-labelledby="r-h"><h2 id="r-h" class="sec">Book reviews</h2><ul class="rgrid">{''.join(card(a) for a in reviews)}</ul></section>
 </div>
 </main>
-""" + FOOT.format(year=date.today().year, base="../")
+""" + FOOT.format(year=date.today().year, base="../", brand_disclosure=escape(BRAND_LICENSE))
 
 
 def feed(arts: list[dict]) -> str:
@@ -332,13 +389,18 @@ def build(check: bool = False) -> list[str]:
                   key=lambda a: (a["kind"] != "guide", int(a.get("order", 99)), a["slug"]))
     errors = []
     slugs = [a["slug"] for a in arts]
+    for a in arts:
+        errors.extend(validate_article(a))
     if len(set(slugs)) != len(slugs):
         errors.append("duplicate slugs")
     for a in arts:
         if a["kind"] == "review" and not (ROOT / a["book"]["img"]).exists():
             errors.append(f"{a['slug']}: missing cover {a['book']['img']}")
-    if check:
+    if errors:
+        print("\n".join(errors), file=sys.stderr)
         return errors
+    if check:
+        return []
     OUT.mkdir(exist_ok=True)
     for kind in ("guide", "review"):
         group = [a for a in arts if a["kind"] == kind]

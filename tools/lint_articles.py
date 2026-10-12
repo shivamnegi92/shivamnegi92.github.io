@@ -19,6 +19,13 @@ from build_articles import SRC, parse  # noqa: E402
 
 ROOT = SRC.parent
 MIN_WORDS = 2_000
+BRAND_IDS = {"meta", "huggingface", "nvidia", "openai", "google", "pytorch", "ollama", "anthropic", "orcid", "arxiv", "googlecloud", "onnx"}
+BRAND_TERMS = {
+    "meta": r"\bMeta\b", "huggingface": r"Hugging Face", "nvidia": r"\bNVIDIA\b",
+    "openai": r"\bOpenAI\b", "google": r"\bGoogle\b", "pytorch": r"\bPyTorch\b",
+    "ollama": r"\bOllama\b", "anthropic": r"\bAnthropic\b", "orcid": r"\bORCID\b",
+    "arxiv": r"\barXiv\b", "googlecloud": r"Google Cloud|\bGCP\b", "onnx": r"\bONNX\b",
+}
 WEASEL = ("illustrative", "my experience")      # numbers must be sourced or derivable
 HYPE = ("revolutionary", "game-changer", "game changer", "mind-blowing", "100x", "10x")
 BANNED_CHARS = {"\u2014": "em dash"}
@@ -38,6 +45,21 @@ def lint(a: dict) -> list[str]:
     words = prose_word_count(body)
     if words < MIN_WORDS:
         errs.append(f"{words} prose words (minimum {MIN_WORDS}; code and diagram markup excluded)")
+
+    brands = a.get("brands", [])
+    if isinstance(brands, str):
+        brands = [b.strip() for b in brands.split(",") if b.strip()]
+    if len(brands) != len(set(brands)):
+        errs.append("duplicate brand IDs")
+    unknown = sorted(set(brands) - BRAND_IDS)
+    if unknown:
+        errs.append(f"unknown brand IDs: {', '.join(unknown)}")
+    for brand in brands:
+        if not (ROOT / "img" / "logos" / f"{brand}.svg").is_file():
+            errs.append(f"brand asset missing: img/logos/{brand}.svg")
+    for brand in brands:
+        if brand in BRAND_TERMS and not re.search(BRAND_TERMS[brand], body, re.I):
+            errs.append(f"brand '{brand}' not named in article body")
 
     # --- metadata
     if not 50 <= len(a["summary"]) <= 200:

@@ -24,15 +24,16 @@
   <a class="brand" href="../../"><span class="mono" aria-hidden="true">SN</span>Shivam Negi</a>
   <nav aria-label="Primary"><a href="../../#research">Research</a><a href="../../writing/">Writing</a><a href="../../writing/#reviews">Book reviews</a><a href="../../#contact">Contact</a></nav>
 </div></header>
-<main id="main">
+<main id="main" tabindex="-1">
 <article>
-  <header class="ahero review"><div class="wrap">
+  <header class="ahero review" aria-labelledby="article-title"><div class="wrap">
     <p class="crumbs"><a href="../">Writing</a> / Book review</p>
-    <h1>Reliable Machine Learning: What Happens When SREs Run Your Models</h1>
+    <div class="kickerline"><span class="issue">SYSTEMS JOURNAL</span><span class="sep">/</span><span>FIELD NOTE 10</span><span class="sep">/</span><span>Book review</span></div>
+    <h1 id="article-title">Reliable Machine Learning: What Happens When SREs Run Your Models</h1>
     <p class="dek">Written by Google-veteran SREs and ML practitioners, this book applies Site Reliability Engineering to ML. SLOs, incident response, and organizational design for models in production.</p>
-    <p class="meta"><time datetime="2026-10-11">Oct 11, 2026</time> &middot; 12 min read &middot; 5 diagrams</p>
+    <p class="meta"><span class="meta-item"><time datetime="2026-10-11">Oct 11, 2026</time></span><span aria-hidden="true">·</span><span class="meta-item">12 min read</span><span aria-hidden="true">·</span><span class="meta-item">5 systems diagrams</span></p>
     <ul class="tags"><li>SRE</li><li>reliability</li><li>MLOps</li><li>incident response</li></ul>
-    <div class="bookcard">
+<div class="bookcard">
   <figure class="cover3d"><img src="../../img/books/reliable-ml.jpg" alt="Cover of Reliable Machine Learning: Applying SRE Principles to ML in Production by Cathy Chen, Niall Richard Murphy, Kranti Parisa, D. Sculley, Todd Underwood" width="220" height="330" loading="eager"></figure>
   <dl>
     <dt>Book</dt><dd><cite>Reliable Machine Learning: Applying SRE Principles to ML in Production</cite></dd>
@@ -86,7 +87,7 @@
 <p>The book's 2022 publication date makes it a foundation for operational thinking, not a full guide to the current foundation-model ecosystem. It should be paired with up-to-date guidance on model and prompt versioning, retrieval quality, agent security, and provider-specific behavior. “SRE principles transfer” is a starting hypothesis; the actual indicators, error budgets, and incident playbooks must be adapted to the system's risk and feedback latency.</p>
 <p>A further limitation is that reliability can be confused with quality. A highly reliable service may consistently produce poor predictions. A model with strong average offline metrics may still fail under shift, for a subgroup, or in a workflow where users cannot correct it. Reliability engineering does not make these normative questions disappear. Teams need to define whose outcomes matter, which failures are unacceptable, and what escalation or human review is appropriate.</p>
 <h2 id="comparison-with-related-reading">Comparison with related reading</h2>
-<div class="table" tabindex="0" role="region" aria-label="Scrollable data table"><table><thead><tr><th>Topic</th><th>What this book's public scope suggests</th><th>Complementary work needed</th></tr></thead><tbody><tr><td>Service operations</td><td>SRE concepts applied to ML in production</td><td>Local incident procedures and service ownership</td></tr><tr><td>Data reliability</td><td>Treating data as a production dependency</td><td>Data contracts, lineage, privacy, and governance</td></tr><tr><td>Model quality</td><td>Monitoring and evaluating deployed behavior</td><td>Task-specific metrics, slice analysis, delayed labels</td></tr><tr><td>LLM operations</td><td>General reliability habits transfer</td><td>Current prompt, retrieval, tool, and safety controls</td></tr><tr><td>Release management</td><td>Controlled operation and response</td><td>Deployment tooling and tested rollback mechanisms</td></tr></tbody></table></div>
+<div class="table" tabindex="0" role="group"><table><thead><tr><th>Topic</th><th>What this book's public scope suggests</th><th>Complementary work needed</th></tr></thead><tbody><tr><td>Service operations</td><td>SRE concepts applied to ML in production</td><td>Local incident procedures and service ownership</td></tr><tr><td>Data reliability</td><td>Treating data as a production dependency</td><td>Data contracts, lineage, privacy, and governance</td></tr><tr><td>Model quality</td><td>Monitoring and evaluating deployed behavior</td><td>Task-specific metrics, slice analysis, delayed labels</td></tr><tr><td>LLM operations</td><td>General reliability habits transfer</td><td>Current prompt, retrieval, tool, and safety controls</td></tr><tr><td>Release management</td><td>Controlled operation and response</td><td>Deployment tooling and tested rollback mechanisms</td></tr></tbody></table></div>
 <h2 id="reading-and-study-guide">Reading and study guide</h2>
 <ol><li><strong>Map one real system.</strong> Draw the path from source data to user-visible decision. Mark owners, contracts, and points where a stale or invalid value could enter.</li><li><strong>Define layered objectives.</strong> Write one infrastructure objective, one data objective, and one model or product-quality objective. State the limits of each measure.</li><li><strong>Design the alert response.</strong> For every alert, identify what action is possible, who takes it, and what evidence they need. Remove alerts that have no actionable response.</li><li><strong>Run an incident tabletop.</strong> Simulate an upstream schema change, delayed labels, or model-quality regression. Practice mitigation, communication, and evidence preservation.</li><li><strong>Audit recovery.</strong> Verify that rollback, replay, and model-version identification actually work. A runbook that has never been tested is a hopeful document, not a recovery capability.</li></ol>
 <h3 id="discussion-questions">Discussion questions</h3>
@@ -111,7 +112,7 @@
 </article>
 </main>
 <footer class="foot"><div class="wrap">
-<p>&copy; 2026 Shivam Negi. Views are my own and do not represent any employer. Book covers are shown for identification and review purposes. <a href="../../writing/feed.xml">RSS</a></p>
+<p>&copy; 2026 Shivam Negi. Views are my own and do not represent any employer. Book covers are shown for identification and review purposes. Simple Icons brand marks are used under CC0 1.0. Trademarks belong to their respective owners; appearance indicates discussion only, not endorsement or affiliation. <a href="../../writing/feed.xml">RSS</a></p>
 </div></footer>
 <script src="../../js/articles.js"></script>
 </body></html>

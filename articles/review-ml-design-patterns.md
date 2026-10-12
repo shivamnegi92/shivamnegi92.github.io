@@ -1,6 +1,7 @@
 ---
 title: Machine Learning Design Patterns: A Shared Vocabulary for ML Engineering
 kind: review
+brands: googlecloud
 date: 2026-10-11
 order: 8
 slug: review-ml-design-patterns

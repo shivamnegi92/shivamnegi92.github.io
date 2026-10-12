@@ -1,6 +1,7 @@
 ---
 title: Build a Large Language Model (From Scratch): Learning Through Implementation
 kind: review
+brands: pytorch, ollama
 date: 2026-10-11
 order: 4
 slug: review-llm-from-scratch
