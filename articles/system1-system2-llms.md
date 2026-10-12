@@ -3,12 +3,12 @@ title: System 1, System 2: How to Give Your AI a Fast Path and a Slow Path
 kind: guide
 date: 2026-10-11
 order: 1
-summary: Why every production LLM system should be two systems, and how to build the router, the escalation policy, and the evals that keep it honest.
+summary: Why a production LLM system should run two paths, a fast default and a slow verified escalation, and how to build the router, the gate, and the evals that keep it honest.
 tags: reasoning, architecture, routing, test-time compute
 ---
-Here is an uncomfortable truth from production: most of your traffic does not need your smartest model. It needs a fast, cheap, boring answer. The hard 5% needs everything you have. If you run one model for both, you pay frontier prices for "what are your store hours" and you starve the multi-step query that actually needed deliberation.
+Most of your traffic does not need your smartest model. It needs a fast, cheap, boring answer. A small, hard minority needs everything you have. Run one model for both and you pay frontier prices for "what are your store hours" while starving the multi-step query that needed deliberation.
 
-Kahneman gave us the vocabulary decades ago. **System 1** is fast, automatic, associative. **System 2** is slow, effortful, deliberate. The LLM literature borrowed the metaphor, and it is a good one. Just remember it is a *metaphor*. Your model does not have two brains. You have to build them.
+Psychology has a vocabulary for this. Keith Stanovich and Richard West coined the terms **System 1** and **System 2** in 2000, and Daniel Kahneman made them famous in *Thinking, Fast and Slow*. System 1 is fast, automatic, and associative. System 2 is slow, effortful, and deliberate. The LLM literature borrowed the metaphor, and it is a useful one, as long as you remember it is a *metaphor*. Your model does not have two brains. You have to build them.
 
 ## The core idea in one picture
 
@@ -29,29 +29,31 @@ The engineering question is never "which system is better." It is **"which reque
 
 ## Why one model for everything fails
 
-Autoregressive decoding is System 1 by construction. Each token is one pass through the network. There is no built-in "think harder" knob. Chain-of-thought (Wei et al., 2022) showed that making the model write intermediate steps improves multi-step reasoning. Snell et al. (2024) showed that spending *more inference compute* can beat a model several times larger. So the knob exists. It is just outside the weights.
+Autoregressive decoding gives every generated token a fixed amount of compute. The only way to "think harder" is to generate more tokens or more samples. Chain-of-thought prompting (Wei et al., 2022) showed that making the model write intermediate steps improves multi-step reasoning, and reasoning models now expose the same idea as an effort or thinking-budget setting. The cost model is unchanged: more thinking means more tokens. Snell et al. (2024) showed how far this goes. Allocating test-time compute adaptively was more than 4x as efficient as a best-of-N baseline, and in a FLOPs-matched comparison a smaller model with extra inference compute outperformed a 14x larger model, on problems where the small model already had a non-trivial success rate. So the knob exists. It lives outside the weights.
 
-:::bars Relative cost per request by strategy (illustrative, normalized to direct answer = 1)
-Direct answer (System 1) | 1 | 1x
-Chain-of-thought | 4 | ~4x
-Self-consistency, 5 samples | 20 | ~20x
-Tool-augmented ReAct loop | 12 | ~12x
-Tree search with verifier! | 60 | ~60x
+The cost of turning that knob follows from how many tokens and calls each strategy spends:
+
+:::bars Relative cost per request, by strategy (k = samples, n = loop steps, b x d = beam width x depth)
+Direct answer | 1 | 1 call
+Chain-of-thought | 4 | 1 call, several times the output tokens
+Self-consistency (k = 5) | 20 | k = 5 reasoning samples
+ReAct tool loop (n = 4) | 16 | n = 4 calls, growing context, plus tool latency
+Tree search (b = 3, d = 3)! | 72 | b x d generations + b x d evaluations, each a reasoning call
 :::
 
-Read that chart as a budget, not a benchmark. The exact multipliers depend on your prompts and models. The *shape* is the point: System 2 strategies cost one to two orders of magnitude more. You cannot afford them on every request, so you must not.
+The bars assume a reasoning call costs about four direct answers. Your multiplier will differ, but the structure is arithmetic, not opinion: deliberation multiplies calls, tokens, and latency. You cannot afford it on every request, so do not spend it on every request.
 
 ## The architecture: a two-speed system
 
 :::flow Request lifecycle in a two-speed LLM system
 ingress: Request -> Cheap features (length, intent, risk) -> Router*
-fast: Router -> System 1 model -> Confidence check -> Response
-slow: Escalate -> Plan + retrieve + tools -> Verifier* -> Response
+fast: Router says easy -> System 1 model -> Confidence gate passes -> Response
+slow: Router says hard, or gate fails! -> Plan + retrieve + tools -> Verifier* -> Response
 :::
 
 Four components, each with one job:
 
-1. **Router.** A small classifier (a fine-tuned encoder or a tiny SLM) that predicts "does this need deliberation?" from cheap features. It must run in single-digit milliseconds, or it eats the savings.
+1. **Router.** A small classifier (a fine-tuned encoder or a tiny language model) that predicts "does this need deliberation?" from cheap features. It must be cheap relative to the System 1 call, typically tens of milliseconds at most.
 2. **System 1 model.** Your fast default. Often a small or distilled model.
 3. **Confidence gate.** A post-hoc check on the fast answer: token log-probabilities, a calibrated classifier, or agreement between two cheap samples. Low confidence means escalate.
 4. **System 2 path.** Planning, retrieval, tool calls, and, critically, a **verifier** that can reject the answer.
@@ -72,34 +74,35 @@ Promote if calibrated
 
 ### Step 1: define "needs System 2" operationally
 
-"Hard" is not a feeling. Define it as: *the System 1 answer fails your eval, and the System 2 answer passes.* Run both paths offline on a sample of real traffic. The label falls out for free.
+"Hard" is not a feeling. Define it as: *the System 1 answer fails your eval, and the System 2 answer passes.* Run both paths offline on a sample of real traffic and grade them. The label is cheap relative to production, though not free: it costs one offline System 2 run and a grader per example.
 
 ```python
-def label(example):
-    fast = system1(example.prompt)
-    slow = system2(example.prompt)
-    fast_ok = grade(fast, example.reference)
-    slow_ok = grade(slow, example.reference)
-    # Only escalate when it actually helps.
-    return int((not fast_ok) and slow_ok)
+def label(example, k=3):
+    # Grade k samples per path: single samples make noisy labels.
+    fast_rate = sum(grade(system1(example.prompt), example.reference) for _ in range(k)) / k
+    slow_rate = sum(grade(system2(example.prompt), example.reference) for _ in range(k)) / k
+    if fast_rate == 0 and slow_rate == 0:
+        return None              # both fail: escalation cannot help, exclude from training
+    return int(slow_rate - fast_rate >= 0.5)   # escalate only when it clearly helps
 ```
 
-Note what this ignores: cases both paths get right (System 1 suffices), and cases both get wrong (escalation is wasted money). That second bucket is your research backlog, not your router's problem.
+Note the `None`. When both paths fail, labeling the example "do not escalate" would teach the router that the hardest prompts are easy. Exclude those cases from router training and send them to your research backlog instead.
 
 ### Step 2: choose the threshold with a cost curve, not a vibe
 
-:::quadrant Where to set the escalation threshold
-x: Escalation rate (cost) | high
-y: Quality | high
-pt: Never escalate~ @ 0.04,0.35
-pt: Sweet spot* @ 0.22,0.86
-pt: Escalate everything! @ 0.95,0.9
-pt: Bad router! @ 0.6,0.45
+Sweep the router threshold and plot quality against escalation rate. Two reference points anchor the chart: never escalate, and always escalate. Escalating a *random* x% of traffic lands on the straight line between them. There is also a hard ceiling: escalating x% of traffic can fix at most x% of answers, so no router can climb faster than a slope of 1. A useful router hugs that ceiling at first, then flattens once the fixable requests are exhausted. A router on or below the random line is no better than a coin. Pick the knee: quality close to "always escalate" at a fraction of the cost.
+
+:::curve Quality vs. escalation rate as you sweep the router threshold (System 1 alone: 78%, always System 2: 90%)
+x: Share of traffic escalated
+y: Task accuracy
+series: Random escalation~ | 0,0.78 1,0.9
+series: Good router* | 0,0.78 0.05,0.825 0.1,0.86 0.15,0.882 0.3,0.895 1,0.9
+mark: Knee* @ 0.15,0.882
 :::
 
-Sweep the router threshold and plot quality against escalation rate. You are looking for the knee: the point where quality is close to "escalate everything" at a fraction of the cost. A router that sits below the diagonal (the "bad router" point) is worse than random escalation. Throw it out.
+In this example only 12% of requests can be fixed by escalation at all (90% minus 78%), which is why a good router finds most of the gain by escalating about 15% of traffic.
 
-## The verifier is the whole game
+## The verifier decides whether System 2 is worth paying for
 
 System 2 without a verifier is just System 1 with more words. Long reasoning traces can talk themselves into a wrong answer, and visible chain-of-thought is not guaranteed to reflect what the model actually computed. Make the slow path *check its own work* against something external:
 
@@ -122,12 +125,12 @@ Prefer verifiers higher in the tree. Executing code and checking state are close
 
 | Concern | Guardrail | Why |
 |---|---|---|
-| Latency SLO | Hard timeout on System 2, then fall back to the System 1 answer with a disclaimer | A correct answer after the user left is a wrong answer |
+| Latency SLO | Hard timeout on System 2. Fall back to the System 1 answer if one exists (or run System 1 in parallel for pre-routed requests), otherwise return a graceful handoff | A correct answer after the user left is a wrong answer |
 | Cost runaway | Per-request token budget and max tool calls | Agent loops do not terminate politely |
 | Silent drift | Track escalation rate as a first-class metric | A rising rate means your traffic or your fast model changed |
 | Overconfidence | Calibrate the gate on held-out data, monthly | Uncalibrated confidence makes the gate decorative |
 
-!!! warning If your escalation rate is above roughly 30%, your System 1 model is too weak or your router is too nervous. Fix the fast path first. A two-speed system only pays off when the fast path handles the bulk of traffic.
+!!! warning Watch the escalation rate as a health metric. If it creeps toward a large share of traffic, your fast path is too weak or your router too nervous. A two-speed system only pays off when the fast path handles the bulk of requests, so fix System 1 before buying more System 2.
 
 ## Key takeaways
 
@@ -137,4 +140,4 @@ Prefer verifiers higher in the tree. Executing code and checking state are close
 - Pick the threshold from a quality vs. cost curve.
 - Invest in verifiers. Deliberation without verification is expensive confidence.
 
-**Further reading:** Kahneman, *Thinking, Fast and Slow* (2011). Wei et al., [Chain-of-Thought Prompting](https://arxiv.org/abs/2201.11903) (2022). Yao et al., [ReAct](https://arxiv.org/abs/2210.03629) (2023) and [Tree of Thoughts](https://arxiv.org/abs/2305.10601) (2023). Snell et al., [Scaling LLM Test-Time Compute Optimally](https://arxiv.org/abs/2408.03314) (2024).
+**Further reading:** Stanovich and West, *Individual differences in reasoning* (Behavioral and Brain Sciences, 2000). Kahneman, *Thinking, Fast and Slow* (2011), [reviewed here](../review-thinking-fast-slow/). Wei et al., [Chain-of-Thought Prompting](https://arxiv.org/abs/2201.11903) (2022). Yao et al., [ReAct](https://arxiv.org/abs/2210.03629) (2023) and [Tree of Thoughts](https://arxiv.org/abs/2305.10601) (2023). Snell et al., [Scaling LLM Test-Time Compute Optimally](https://arxiv.org/abs/2408.03314) (2024).

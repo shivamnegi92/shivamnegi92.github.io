@@ -1,7 +1,7 @@
 ---
 title: Hands-On Large Language Models: The Most Visual Book on LLMs
 kind: review
-date: 2026-10-07
+date: 2026-10-11
 order: 5
 slug: review-hands-on-llm
 summary: Jay Alammar and Maarten Grootendorst bring the "Illustrated Transformer" style to a full book on embeddings, classification, clustering, semantic search, and generation.
@@ -10,7 +10,7 @@ book: Hands-On Large Language Models | Jay Alammar and Maarten Grootendorst | O'
 verdict: The best book for building intuition about what LLMs and embeddings actually do, backed by runnable code. Visual learners will love it.
 rating: 4.5
 ---
-If you learned transformers from Jay Alammar's *Illustrated Transformer* blog post, you already know the style. This book scales it up: hundreds of clear illustrations, paired with Maarten Grootendorst's practical code (he created BERTopic).
+If you learned transformers from Jay Alammar's *Illustrated Transformer* blog post, you already know the style. This book scales it up to nearly 300 figures and illustrations, paired with practical code from Maarten Grootendorst, the creator of BERTopic.
 
 ## The big idea: two kinds of language models
 
@@ -47,11 +47,11 @@ The embedding chapters are the best explanation I know of what it means for text
 
 ### Topic modeling with embeddings
 
-:::flow The BERTopic-style pipeline taught in the book
-Documents -> Embed -> Reduce dimensions -> Cluster* -> Extract topic words -> Label topics with an LLM
+:::flow The BERTopic pipeline taught in the book
+Documents -> Embedding model -> UMAP (reduce dimensions) -> HDBSCAN (cluster)* -> c-TF-IDF (topic words) -> Optional LLM topic labels
 :::
 
-It is a beautiful example of combining representation and generative models: embeddings do the heavy lifting, and an LLM writes human-friendly labels at the end.
+It is a beautiful example of combining the two model types: embeddings do the heavy lifting, and an LLM can write human-friendly topic labels at the end.
 
 ### Semantic search and RAG
 
@@ -66,12 +66,14 @@ Generation | An LLM answers grounded in the retrieved documents
 - Intuition-first means some mathematical depth is intentionally left out. Pair it with Goodfellow et al. or Raschka for the internals.
 - Production concerns like evaluation rigor, latency budgets, and monitoring get lighter treatment than in Chip Huyen's books.
 
-:::bars Where this book sits, depth vs. intuition (my assessment)
-Visual intuition* | 10 | exceptional
-Runnable code | 8 | strong
-Math depth | 4 | light by design
-Production ops | 4 | light
-:::
+## My rubric
+
+| Dimension | Score | Note |
+|---|---|---|
+| Visual intuition | 5/5 | The book's defining strength |
+| Runnable code | 4.5/5 | Practical notebooks throughout |
+| Mathematical depth | 3/5 | Light by design |
+| Production operations | 3/5 | Pair with Chip Huyen's books |
 
 ## Verdict
 

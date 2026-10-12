@@ -1,7 +1,7 @@
 ---
-title: Why Your LLM Judge Is Lying to You (and How to Audit It)
+title: Why Your LLM Judge Is Biased (and How to Audit It)
 kind: guide
-date: 2026-10-05
+date: 2026-10-11
 order: 6
 summary: LLM-as-a-judge is the cheapest evaluator you will ever have and the easiest to fool. A practical audit protocol for position bias, verbosity bias, self-preference, and agreement with humans.
 tags: evaluation, LLM-as-judge, bias, measurement
@@ -44,7 +44,7 @@ def position_consistency(judge, pairs):
     return consistent / len(pairs)
 ```
 
-Anything below roughly 0.9 means your verdicts are partly coin flips weighted by slot. Always aggregate over both orders.
+Anything well short of 1.0 means part of your verdicts are decided by slot, not content. Always aggregate over both orders.
 
 ### 2. Length-controlled pairs (verbosity bias)
 
@@ -52,14 +52,17 @@ Build pairs where the better answer is *shorter*. If the judge still picks the l
 
 ### 3. Agreement with humans
 
-:::bars Agreement with human labels, chance-corrected (illustrative targets)
-Human vs. human (ceiling)* | 0.72 | kappa 0.72
-Audited judge | 0.64 | kappa 0.64
-Unaudited judge! | 0.38 | kappa 0.38
-Random | 0.0 | kappa 0.00
+Use a chance-corrected statistic such as Cohen's kappa, not raw agreement. With imbalanced labels, raw agreement looks excellent even for a judge that always says "pass." Interpret kappa against the conventional Landis and Koch (1977) bands:
+
+:::bars Landis and Koch interpretation bands for kappa (upper bound of each band)
+Slight (0.00 to 0.20)! | 0.20 | 0.20
+Fair (0.21 to 0.40) | 0.40 | 0.40
+Moderate (0.41 to 0.60) | 0.60 | 0.60
+Substantial (0.61 to 0.80)* | 0.80 | 0.80
+Almost perfect (0.81 to 1.00) | 1.00 | 1.00
 :::
 
-Use Cohen's kappa, not raw agreement. With imbalanced labels, raw agreement looks great even for a useless judge. And the realistic ceiling is **human-human** agreement: a judge cannot beat the consistency of the humans who define the task.
+Always report **human-human agreement** on the same items as a reference point. On MT-Bench, Zheng et al. (2023) found GPT-4's agreement with human experts (over 80%) comparable to the agreement between the humans themselves. If your judge agrees with humans far less than humans agree with each other, it is not measuring the same thing they are.
 
 ## Report the judge like an instrument
 
@@ -90,8 +93,8 @@ Scope | Which tasks it is validated for, and which it is not
 
 - Assume your judge is biased until an audit says otherwise.
 - Swap order, control for length, and check self-preference.
-- Measure chance-corrected agreement with humans against the human-human ceiling.
+- Measure chance-corrected agreement with humans, with human-human agreement as the reference point.
 - Version the judge prompt and model like any other dependency.
 - Use judges for triage and iteration. Keep humans on launch decisions.
 
-**Further reading:** Zheng et al., *Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena* (2023). Runnable baseline: [judge_audit in Practical AI Systems](https://github.com/shivamnegi92/practical-ai-systems).
+**Further reading:** Zheng et al., [Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena](https://arxiv.org/abs/2306.05685) (2023). Landis and Koch, *The Measurement of Observer Agreement for Categorical Data* (Biometrics, 1977). Runnable baseline: [judge_audit in Practical AI Systems](https://github.com/shivamnegi92/practical-ai-systems).

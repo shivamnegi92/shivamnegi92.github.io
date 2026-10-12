@@ -10,9 +10,7 @@ book: Designing Data-Intensive Applications | Martin Kleppmann | O'Reilly Media,
 verdict: The single most important book for anyone building ML systems at scale. It does not teach a tool; it teaches the trade-offs every tool hides.
 rating: 5
 ---
-Most technical books age like milk. *Designing Data-Intensive Applications* (DDIA) ages like a good textbook, because it is not about tools. It is about the **trade-offs that every tool makes on your behalf**, often without telling you.
-
-I reread it every couple of years, and every time I find something I was getting wrong in production.
+Most technical books age like milk. *Designing Data-Intensive Applications* (DDIA) ages like a good textbook, because it is not about tools. It is about the **trade-offs every tool makes on your behalf**, often without telling you. This review covers the first edition (2017). A second edition, co-authored with Chris Riccomini, updates the examples, but the ideas below are the ones that made the first edition a classic.
 
 ## What the book is really about
 
@@ -26,8 +24,10 @@ Maintainability | Many different people can work on the system productively over
 
 Then it builds from a single machine up to a distributed fleet:
 
-:::flow The arc of the book
-Part I: one machine (models, storage, encoding) -> Part II: many machines (replication, partitioning, transactions, consensus)* -> Part III: derived data (batch, streams, the future)
+:::layers The book's three parts
+Part I: Foundations of Data Systems | One machine: data models, storage engines, encoding and evolution
+Part II: Distributed Data* | Many machines: replication, partitioning, transactions, consistency and consensus
+Part III: Derived Data | Batch processing, stream processing, and the future of data systems
 :::
 
 ## The ideas that stuck with me
@@ -59,7 +59,7 @@ User -> Leader: update profile
 Leader --> User: OK
 Leader -> Follower: replicate (async, lagging)
 User -> Follower: read profile
-Follower --> User: stale old value!
+Follower --> User: stale old value (lag)
 :::
 
 The fix patterns (read-your-writes, monotonic reads, consistent prefix reads) are exactly the guarantees your users assume and your system may not provide.
@@ -74,22 +74,22 @@ System of record -> Change data capture -> Stream processor* -> Feature store + 
 
 ## Why this matters for AI engineers
 
-Here is the uncomfortable truth: **most "model problems" in production are data-system problems.** Training-serving skew is a derived-data consistency problem. A stale embedding index is a replication-lag problem. A feature pipeline that double-counts events is an exactly-once-processing problem. DDIA gives you the vocabulary to diagnose all of them.
+Here is the argument for AI engineers: **many "model problems" in production are data-system problems in disguise.** DDIA gives you the vocabulary to diagnose them:
 
-:::bars How often each DDIA chapter maps to ML production issues (my experience, illustrative)
-Stream processing / derived data* | 9 | very often
-Encoding and evolution | 7 | often
-Replication | 6 | often
-Partitioning | 5 | sometimes
-Transactions | 4 | sometimes
-:::
+| ML production symptom | The DDIA concept underneath | Chapter |
+|---|---|---|
+| Training-serving skew | Consistency of derived data | 11, 12 |
+| Stale embedding index | Replication lag, derived-data freshness | 5, 11 |
+| Feature pipeline double-counts events | Exactly-once processing, idempotence | 11 |
+| New feature breaks old consumers | Schema evolution, forward and backward compatibility | 4 |
+| Backfill gives different numbers | Deterministic batch processing | 10 |
 
 !!! tip Read Chapter 4 (encoding and evolution) before you design your next feature schema. Schema evolution is the silent killer of ML pipelines.
 
 ## What I would change
 
-- Some technology examples are dated. The principles are not, but newcomers might be confused by references to tools that have since evolved.
-- Vector databases and embedding indexes did not exist in their current form. A modern reader has to do the mapping, though the derived-data framing makes it easy.
+- Some technology examples in the first edition are dated. The principles are not, and the second edition refreshes the examples.
+- Vector databases and embedding indexes are not covered in the first edition. A modern reader has to do the mapping, though the derived-data framing makes that easy.
 
 ## Who should read it
 

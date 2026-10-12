@@ -1,7 +1,7 @@
 ---
 title: Reliable Machine Learning: What Happens When SREs Run Your Models
 kind: review
-date: 2026-10-02
+date: 2026-10-11
 order: 10
 slug: review-reliable-ml
 summary: Written by Google-veteran SREs and ML practitioners, this book applies Site Reliability Engineering to ML. SLOs, incident response, and organizational design for models in production.
@@ -10,7 +10,7 @@ book: Reliable Machine Learning: Applying SRE Principles to ML in Production | C
 verdict: The book that treats ML as an operational discipline. Essential for anyone on call for a model, and for leaders deciding how ML teams should be organized.
 rating: 4.5
 ---
-Most ML books end at deployment. This one starts there. Written by a team that includes Site Reliability Engineering veterans and D. Sculley of "Hidden Technical Debt" fame, *Reliable Machine Learning* asks: **what does it mean to run a model reliably, at 3 a.m., when it breaks?**
+Most ML books end at deployment. This one starts there. Written by a team that includes Site Reliability Engineering veterans and D. Sculley, lead author of the influential "Hidden Technical Debt in Machine Learning Systems" paper, *Reliable Machine Learning* asks: **what does it mean to run a model reliably, at 3 a.m., when it breaks?** A fictional online retailer runs through the book as a shared example, which keeps the advice concrete.
 
 ## The core reframing
 
@@ -67,11 +67,15 @@ On-call -> Model: roll back + add data validation
 
 Unusually, the book covers how to organize teams around ML: who owns the data, the model, and the on-call rotation, and how to avoid the "throw it over the wall" handoff between data scientists and operations.
 
-:::bars Where ML incidents originate, per the book's framing (weighting is my experience)
-Upstream data changes! | 9 | most common
-Feature pipeline bugs | 7 | common
-Serving infrastructure | 5 | sometimes
-Model code itself~ | 3 | least common
+:::compare Where an ML incident's root cause usually is vs. where teams look first
+# Where teams look first
+- The model code and weights
+- The serving infrastructure
+- The last deploy
+# Where the cause often is
+- An upstream data change nobody announced
+- A feature pipeline silently emitting nulls
+- A slow drift in the world, with no deploy at all
 :::
 
 ## Limitations
@@ -79,9 +83,9 @@ Model code itself~ | 3 | least common
 - Pre-LLM, so foundation-model operations, such as prompt versioning and judge drift, are not covered directly, though the principles transfer cleanly.
 - Dense in places, and written for practitioners with some production experience.
 
-## How it shaped my practice
+## How it connects to my guides
 
-The canary-and-rollback discipline in [How to Ship a Model Safely](../ship-models-safely/) comes straight from the SRE mindset this book teaches.
+The canary-and-rollback discipline in [How to Ship a Model Safely](../ship-models-safely/) applies the SRE mindset this book teaches.
 
 ## Verdict
 

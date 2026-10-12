@@ -1,7 +1,7 @@
 ---
 title: Thinking, Fast and Slow: The Psychology Book Every AI Engineer Should Read
 kind: review
-date: 2026-10-06
+date: 2026-10-11
 order: 6
 slug: review-thinking-fast-slow
 summary: Kahneman's dual-process theory gave AI its favorite metaphor for reasoning models, and it is an even better manual for the biases in your evals, your labels, and your launch decisions.
@@ -10,7 +10,7 @@ book: Thinking, Fast and Slow | Daniel Kahneman | Farrar, Straus and Giroux, 201
 verdict: Not an AI book, and one of the most useful books an AI engineer can read. It explains both the System 1 and System 2 metaphor and the human biases that corrupt our data and decisions.
 rating: 4.5
 ---
-It is strange to review a psychology book on an AI blog. But walk into any reasoning-model discussion today and you will hear "System 1" and "System 2" within minutes. Those terms come from this book. Most people using them have not read it.
+It is unusual to review a psychology book on an AI blog. But walk into any reasoning-model discussion today and you will hear "System 1" and "System 2" within minutes. Kahneman popularized those terms (he credits Keith Stanovich and Richard West with introducing them). Many people who use them have never read the book.
 
 ## The two systems
 
@@ -32,7 +32,7 @@ The most important insight is not that two systems exist. It is that **System 2 
 ## Why AI borrowed the metaphor
 
 :::flow How the metaphor maps onto LLM systems
-Plain decoding ~ System 1 -> Chain-of-thought + tools ~ System 2* -> A router decides when to escalate
+Plain decoding (System 1) -> Chain-of-thought and tools (System 2)* -> A router decides when to escalate
 :::
 
 I wrote a full guide on engineering this: [System 1, System 2: How to Give Your AI a Fast Path and a Slow Path](../system1-system2-llms/). The book adds a crucial caution: System 2 can **rationalize** System 1's mistakes rather than correct them. Long reasoning traces do the same thing.
@@ -64,13 +64,12 @@ Biases in AI teams
 | Planning fallacy | Project timelines | Reference-class forecasting from past projects |
 | Confirmation bias | Reading A/B results | Pre-register metrics and decision rules |
 | Overconfidence | Calibration | Measure it. Expect it in people and models alike |
+| Sunk cost | Failing projects | Set kill criteria before the project starts |
 
-:::bars How often each bias appears in ML project retros (my experience, illustrative)
-Planning fallacy! | 9 | almost always
-WYSIATI in evals | 8 | very often
-Confirmation bias | 7 | often
-Anchoring in labels | 6 | often
-Sunk cost | 5 | sometimes
+## How a bias enters a launch decision
+
+:::flow WYSIATI in action, and where to break the chain
+Clean dashboard metric -> System 1 builds a coherent story -> Missing slices go unnoticed! -> Confident launch -> Pre-registered checklist breaks the chain*
 :::
 
 ## Caveats

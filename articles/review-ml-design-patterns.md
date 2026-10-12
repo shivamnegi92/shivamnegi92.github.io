@@ -1,7 +1,7 @@
 ---
 title: Machine Learning Design Patterns: A Shared Vocabulary for ML Engineering
 kind: review
-date: 2026-10-04
+date: 2026-10-11
 order: 8
 slug: review-ml-design-patterns
 summary: Lakshmanan, Robinson, and Munn do for ML what the Gang of Four did for software, naming recurring problems and their solutions so teams can design and review ML systems faster.
@@ -10,7 +10,7 @@ book: Machine Learning Design Patterns | Valliappa Lakshmanan, Sara Robinson, Mi
 verdict: The best book for turning tribal ML knowledge into a shared vocabulary. Its patterns make design reviews faster and junior engineers productive sooner.
 rating: 4
 ---
-The value of design patterns is not the solutions. Experienced engineers already know them. The value is the **names**. Once a team can say "that's a Cascade" or "we need a Transform here," design reviews become ten times faster. This book gives ML teams those names.
+The value of design patterns is not the solutions, which experienced engineers often already know. The value is the **names**. Once a team can say "that's a Cascade" or "we need a Transform here," design reviews get much faster. This book catalogs 30 patterns and gives ML teams those names.
 
 ## The pattern catalog, at a glance
 
@@ -79,13 +79,15 @@ Cloud model --> Device: rich response
 - Examples lean heavily on Google Cloud. The patterns are portable, but the code is not.
 - Published in 2020, so LLM-era patterns (RAG, tool use, guardrails, LLM-as-judge) are absent. A second edition would be welcome.
 
-:::bars Pattern families by how often I use them (my experience)
-Reproducibility* | 9 | constantly
-Problem representation | 8 | very often
-Resilient serving | 7 | often
-Data representation | 6 | often
-Model training | 5 | sometimes
-:::
+## The patterns with the highest return
+
+| Pattern | Fixes | Return on adoption |
+|---|---|---|
+| Transform | Training-serving skew | Highest: prevents a whole bug class |
+| Repeatable Splitting | Leakage and irreproducible evals | High, and nearly free |
+| Cascade | Rare-case handling, cost | High for routing workloads |
+| Neutral Class | Forced choices on ambiguous inputs | Medium, underused |
+| Two-Phase Predictions | On-device cost and latency | High where edge devices are involved |
 
 ## Verdict
 

@@ -1,7 +1,7 @@
 ---
 title: How to Route Intents with Confidence: The Hybrid Classifier Pattern
 kind: guide
-date: 2026-10-06
+date: 2026-10-11
 order: 5
 summary: Why a single model should never decide everything, and how to build a confidence-gated cascade of rules, a small classifier, and an LLM fallback with self-correcting labels.
 tags: classification, routing, active learning, LLM-as-judge
@@ -71,24 +71,29 @@ Retrain and recalibrate
 
 ## Watch the confusion matrix, not just accuracy
 
-:::bars Errors concentrate in a few class pairs (illustrative)
-refund vs. billing! | 31 | 31%
-store hours vs. location | 14 | 14%
-restock vs. price check | 12 | 12%
-search vs. product Q&A | 11 | 11%
-All other pairs | 32 | 32%
+Aggregate accuracy hides where the errors live. Errors almost always concentrate in a few class pairs whose definitions overlap. Read the confusion matrix and you know what to fix:
+
+:::compare Two ways to spend your next sprint
+# Bigger model (tempting)
+- Expensive retraining and serving
+- Overlapping label definitions stay overlapping
+- Same confusion pairs, slightly fewer errors
+# Sharper data (effective)
+- Rewrite definitions for the top confusion pairs
+- Add contrastive examples for those pairs only
+- Directly targets where the errors are
 :::
 
-When the top two confusion pairs account for nearly half of all errors, you do not need a bigger model. You need sharper label definitions and contrastive data for those pairs.
+If the top few confusion pairs account for a large share of errors, you do not need a bigger model. You need sharper label definitions and contrastive data for those pairs.
 
 ## Pick thresholds by cost
 
-:::quadrant Threshold tuning for the Tier 1 to Tier 2 gate
-x: Share sent to LLM (cost) | high
-y: End-to-end routing accuracy | high
-pt: Gate too strict~ @ 0.08,0.55
-pt: Knee of the curve* @ 0.18,0.9
-pt: Everything to LLM! @ 0.92,0.92
+:::curve Sweeping the Tier 1 to Tier 2 gate threshold
+x: Share of traffic sent to the LLM
+y: End-to-end routing accuracy
+series: Calibrated gate* | 0,0.62 0.08,0.8 0.18,0.9 0.35,0.93 0.6,0.94 1,0.94
+series: Random handoff~ | 0,0.62 1,0.94
+mark: Knee* @ 0.18,0.9
 :::
 
 ## Data hygiene: the bugs that inflate your metrics
@@ -100,7 +105,7 @@ pt: Everything to LLM! @ 0.92,0.92
 | Extreme class imbalance | Rare intents never predicted | Stratified splits, class weights, targeted synthesis |
 | Stale label definitions | Annotators disagree | Write a labeling guide with contrastive examples |
 
-!!! warning Check for leakage before celebrating. A "15-point improvement" that comes from deleting duplicated test phrases is a measurement fix, not a model fix. It is valuable, but report it honestly.
+!!! warning Check for leakage before celebrating. If a big offline jump came from removing duplicated phrases that appeared in both train and test, that is a measurement fix, not a model fix. It is valuable, but report it as such.
 
 ## Key takeaways
 

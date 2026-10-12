@@ -3,7 +3,7 @@
 Each renderer takes the lines of a ``:::kind Caption`` block and returns SVG
 markup. Colors come from CSS classes in articles.css so light/dark stay consistent.
 
-Kinds: flow, layers, compare, loop, seq, quadrant, tree, bars.
+Kinds: flow, layers, compare, loop, seq, quadrant, tree, bars, curve.
 """
 from __future__ import annotations
 
@@ -32,6 +32,7 @@ def wrap(text: str, width_px: float) -> list[str]:
 
 def _style(label: str) -> tuple[str, str]:
     """Trailing * = accent, ! = danger, ~ = muted."""
+    label = label.strip()
     for mark, cls in (("*", "acc"), ("!", "bad"), ("~", "dim")):
         if label.endswith(mark):
             return label[:-1].strip(), cls
@@ -255,19 +256,73 @@ def bars(lines, title, uid):
         label, cls = _style(parts[0])
         rows.append((label, cls, float(parts[1]), parts[2] if len(parts) > 2 else ""))
     top = max(r[2] for r in rows) or 1
-    L, pad, bh, gap = 220, 12, 22, 14
-    span = W - L - pad - 120
-    body = []
-    for i, (label, cls, val, note) in enumerate(rows):
-        y = 10 + i * (bh + gap)
-        body.append(_text(L - 12, y + bh / 2, [label], "t", "end"))
-        body.append(f'<rect class="track" x="{L}" y="{y}" width="{span}" height="{bh}" rx="6"/>')
-        body.append(f'<rect class="bar bar-{cls}" x="{L}" y="{y}" width="{span * val / top:.1f}" height="{bh}" rx="6"/>')
-        body.append(_text(L + span + 10, y + bh / 2, [note or f"{val:g}"], "t t-strong", "start"))
-    return _svg(10 + len(rows) * (bh + gap), "".join(body), title, uid)
+    pad, bh = 12, 22
+    notes = [note or f"{val:g}" for _, _, val, note in rows]
+    note_w = min(250, max(70, max(len(n) for n in notes) * CHAR + 16))
+    label_w = min(250, max(len(r[0]) for r in rows) * CHAR + 16)
+    L = pad + label_w
+    span = W - L - pad - note_w - 10
+    body, y = [], 10
+    for (label, cls, val, _), note in zip(rows, notes):
+        note_lines = wrap(note, note_w - 6)
+        label_lines = wrap(label, label_w - 12)
+        h = max(bh, len(note_lines) * LINE, len(label_lines) * LINE)
+        cy = y + h / 2
+        body.append(_text(L - 12, cy, label_lines, "t", "end"))
+        body.append(f'<rect class="track" x="{L}" y="{cy - bh / 2:.1f}" width="{span:.1f}" height="{bh}" rx="6"/>')
+        body.append(f'<rect class="bar bar-{cls}" x="{L}" y="{cy - bh / 2:.1f}" width="{span * val / top:.1f}" height="{bh}" rx="6"/>')
+        body.append(_text(L + span + 10, cy, note_lines, "t t-strong", "start"))
+        y += h + 14
+    return _svg(y, "".join(body), title, uid)
 
 
-RENDERERS = {f.__name__: f for f in (flow, layers, compare, loop, seq, quadrant, tree, bars)}
+def curve(lines, title, uid):
+    """Line chart in unit space. Lines: 'x: label', 'y: label',
+    'series: Name[*!~] | x,y x,y ...', 'mark: Label[*!~] @ x,y'."""
+    cfg, series, marks = {}, [], []
+    for line in lines:
+        key, _, val = line.partition(":")
+        key = key.strip()
+        if key == "series":
+            name, _, pts = val.partition("|")
+            xy = [tuple(float(v) for v in p.split(",")) for p in pts.split()]
+            series.append((*_style(name), xy))
+        elif key == "mark":
+            label, _, xy = val.partition("@")
+            x, y = (float(v) for v in xy.split(","))
+            marks.append((*_style(label), x, y))
+        else:
+            cfg[key] = val.strip()
+    L, T, PW, PH = 70, 16, W - 70 - 30, 260
+    px = lambda x: L + x * PW  # noqa: E731
+    py = lambda y: T + (1 - y) * PH  # noqa: E731
+    body = [f'<rect class="b-panel" x="{L}" y="{T}" width="{PW}" height="{PH}" rx="8"/>']
+    for g in (0.25, 0.5, 0.75):
+        body.append(f'<line class="life" x1="{L}" y1="{py(g):.1f}" x2="{L + PW}" y2="{py(g):.1f}"/>')
+    body.append(_text(L + PW / 2, T + PH + 22, [cfg.get("x", "") + " \u2192"], "t t-sm"))
+    body.append(f'<text class="t t-sm" text-anchor="middle" transform="translate({L - 24} {T + PH / 2}) rotate(-90)">'
+                f'{escape(cfg.get("y", ""))} \u2192</text>')
+    lx = L
+    legend_y = T + PH + 48
+    for name, cls, xy in series:
+        d = " ".join(f"{'M' if j == 0 else 'L'}{px(x):.1f} {py(y):.1f}" for j, (x, y) in enumerate(xy))
+        body.append(f'<path class="ln ln-{cls}" d="{d}"/>')
+        body.append(f'<path class="ln ln-{cls}" d="M{lx} {legend_y} h28"/>')
+        body.append(_text(lx + 36, legend_y, [name], f"t t-{cls}x", "start"))
+        lx += 36 + len(name) * CHAR + 34
+    for label, cls, x, y in marks:
+        body.append(f'<circle class="pt pt-{cls}" cx="{px(x):.1f}" cy="{py(y):.1f}" r="7"/>')
+        # centre the label directly below a high point (or above a low one), where
+        # the plot is empty, and clamp it inside the panel
+        dy = 30 if y > 0.5 else -26
+        width = len(label) * CHAR + 14
+        bx = min(max(px(x) - width / 2, L + 4), L + PW - width - 4)
+        body.append(f'<rect class="lbl-bg" x="{bx:.1f}" y="{py(y) + dy - 11:.1f}" width="{width:.1f}" height="22" rx="5"/>')
+        body.append(_text(bx + width / 2, py(y) + dy, [label], f"t t-{cls}x"))
+    return _svg(legend_y + 18, "".join(body), title, uid)
+
+
+RENDERERS = {f.__name__: f for f in (flow, layers, compare, loop, seq, quadrant, tree, bars, curve)}
 
 
 def render(kind: str, lines: list[str], title: str, uid: str) -> str:

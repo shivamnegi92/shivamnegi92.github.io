@@ -11,6 +11,7 @@
 <meta property="og:title" content="Writing">
 <meta property="og:description" content="Diagram-heavy guides on AI systems and reviews of the books that shaped them.">
 <meta property="og:url" content="https://shivamnegi92.github.io/writing/">
+<meta property="og:image" content="https://shivamnegi92.github.io/img/about.jpg">
 <meta name="theme-color" content="#0b1020">
 <link rel="alternate" type="application/rss+xml" title="Shivam Negi: Writing" href="../writing/feed.xml">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%235b6cf6%27/%3E%3Ctext x=%2732%27 y=%2742%27 font-family=%27Arial%27 font-size=%2728%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3ESN%3C/text%3E%3C/svg%3E">
@@ -32,21 +33,21 @@
 </div></header>
 <div class="wrap">
   <section aria-labelledby="g-h"><h2 id="g-h" class="sec">Guides</h2><ul class="ggrid"><li class="gcard"><a href="system1-system2-llms/">
+  <span class="kicker">Guide &middot; 7 min</span>
+  <h3>System 1, System 2: How to Give Your AI a Fast Path and a Slow Path</h3><p>Why a production LLM system should run two paths, a fast default and a slow verified escalation, and how to build the router, the gate, and the evals that keep it honest.</p><ul class="tags"><li>reasoning</li><li>architecture</li><li>routing</li></ul></a></li><li class="gcard"><a href="shrink-a-transformer/">
   <span class="kicker">Guide &middot; 5 min</span>
-  <h3>System 1, System 2: How to Give Your AI a Fast Path and a Slow Path</h3><p>Why every production LLM system should be two systems, and how to build the router, the escalation policy, and the evals that keep it honest.</p><ul class="tags"><li>reasoning</li><li>architecture</li><li>routing</li></ul></a></li><li class="gcard"><a href="shrink-a-transformer/">
+  <h3>How to Shrink a Transformer for CPU Serving Without Losing Your Mind (or Accuracy)</h3><p>A field manual for distilling, pruning, and quantizing language models for CPU-only, latency-critical serving, and why most of the tricks fail before one works.</p><ul class="tags"><li>small language models</li><li>distillation</li><li>pruning</li></ul></a></li><li class="gcard"><a href="voice-agent-latency/">
   <span class="kicker">Guide &middot; 4 min</span>
-  <h3>How to Shrink a Transformer 100x Without Losing Your Mind (or Accuracy)</h3><p>A field manual for distilling, pruning, and quantizing language models for CPU-only, latency-critical serving, and why most of the tricks fail before one works.</p><ul class="tags"><li>small language models</li><li>distillation</li><li>pruning</li></ul></a></li><li class="gcard"><a href="voice-agent-latency/">
-  <span class="kicker">Guide &middot; 3 min</span>
   <h3>Why Your Voice Agent Feels Rude: Latency, Turn-Taking, and Barge-In</h3><p>A systems view of real-time voice agents, why 800 ms feels broken, and how to engineer the pipeline, the turn-taking model, and the evals so conversations feel human.</p><ul class="tags"><li>voice agents</li><li>latency</li><li>turn-taking</li></ul></a></li><li class="gcard"><a href="rag-that-says-i-dont-know/">
   <span class="kicker">Guide &middot; 3 min</span>
   <h3>How to Build a RAG System That Says &quot;I Don&#x27;t Know&quot;</h3><p>Retrieval-augmented generation fails quietly. Here is how to engineer retrieval, grounding, citation checks, and abstention so wrong answers become honest refusals.</p><ul class="tags"><li>RAG</li><li>retrieval</li><li>evaluation</li></ul></a></li><li class="gcard"><a href="hybrid-intent-routing/">
   <span class="kicker">Guide &middot; 3 min</span>
   <h3>How to Route Intents with Confidence: The Hybrid Classifier Pattern</h3><p>Why a single model should never decide everything, and how to build a confidence-gated cascade of rules, a small classifier, and an LLM fallback with self-correcting labels.</p><ul class="tags"><li>classification</li><li>routing</li><li>active learning</li></ul></a></li><li class="gcard"><a href="audit-your-llm-judge/">
   <span class="kicker">Guide &middot; 3 min</span>
-  <h3>Why Your LLM Judge Is Lying to You (and How to Audit It)</h3><p>LLM-as-a-judge is the cheapest evaluator you will ever have and the easiest to fool. A practical audit protocol for position bias, verbosity bias, self-preference, and agreement with humans.</p><ul class="tags"><li>evaluation</li><li>LLM-as-judge</li><li>bias</li></ul></a></li><li class="gcard"><a href="guardrails-for-agents/">
-  <span class="kicker">Guide &middot; 3 min</span>
+  <h3>Why Your LLM Judge Is Biased (and How to Audit It)</h3><p>LLM-as-a-judge is the cheapest evaluator you will ever have and the easiest to fool. A practical audit protocol for position bias, verbosity bias, self-preference, and agreement with humans.</p><ul class="tags"><li>evaluation</li><li>LLM-as-judge</li><li>bias</li></ul></a></li><li class="gcard"><a href="guardrails-for-agents/">
+  <span class="kicker">Guide &middot; 4 min</span>
   <h3>How to Put Guardrails on an AI Agent Without Killing It</h3><p>Agents fail by doing things, not by saying things. A layered defense of allow-lists, budgets, approvals, and audit trails, plus a red-team loop that proves the guardrails hold.</p><ul class="tags"><li>agents</li><li>safety</li><li>tool use</li></ul></a></li><li class="gcard"><a href="semantic-caching/">
-  <span class="kicker">Guide &middot; 3 min</span>
+  <span class="kicker">Guide &middot; 4 min</span>
   <h3>How Semantic Caching Cuts LLM Cost, and Why It Can Serve Wrong Answers</h3><p>The economics of LLM caching, exact vs. semantic hits, threshold tuning, invalidation, and the subtle ways a cache can return a confidently wrong answer to a different question.</p><ul class="tags"><li>caching</li><li>cost</li><li>latency</li></ul></a></li><li class="gcard"><a href="ship-models-safely/">
   <span class="kicker">Guide &middot; 3 min</span>
   <h3>How to Ship a Model Safely: Shadow, Canary, and the Rollback Button</h3><p>Offline metrics do not predict production. A deployment ladder of shadow traffic, canaries with guardrail metrics, and automatic rollback, the SRE way.</p><ul class="tags"><li>MLOps</li><li>deployment</li><li>canary</li></ul></a></li><li class="gcard"><a href="training-data-is-the-model/">

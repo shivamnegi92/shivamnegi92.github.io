@@ -20,3 +20,7 @@ Diagrams are written inline as text blocks (`:::flow`, `:::layers`, `:::compare`
 `:::loop`, `:::seq`, `:::quadrant`, `:::tree`, `:::bars`) and rendered to
 accessible, theme-aware SVG by `tools/diagrams.py`. Book covers are in
 `img/books/` (see the README there).
+
+Quality gate: `python3 tools/lint_articles.py` must pass before publishing
+(structure, metadata, parseable code, diagram syntax, no unsourced numbers,
+internal links). The editorial history is in `editorial/REVIEW_LOG.md`.

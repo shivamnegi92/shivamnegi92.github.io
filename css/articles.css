@@ -126,6 +126,9 @@ figcaption span { font-weight: 800; color: var(--text); margin-right: .3rem; }
 .dg .ring { fill: none; stroke: var(--line); stroke-width: 2; stroke-dasharray: 6 6; }
 .dg .life { stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 4 4; }
 .dg .pt { stroke: var(--bg); stroke-width: 2; } .dg .pt-node, .dg .pt-dim { fill: #5b6cf6; } .dg .pt-acc { fill: #7c3aed; } .dg .pt-bad { fill: #dc2626; }
+.dg .ln { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.dg .ln-node { stroke: #5b6cf6; } .dg .ln-acc { stroke: #7c3aed; } .dg .ln-bad { stroke: #dc2626; } .dg .ln-dim { stroke: #9aa3b5; stroke-dasharray: 6 5; }
+.dg .lbl-bg { fill: var(--bg); opacity: .92; }
 .dg .track { fill: var(--line); opacity: .6; }
 .dg .bar { fill: #5b6cf6; } .dg .bar-acc { fill: #7c3aed; } .dg .bar-bad { fill: #dc2626; } .dg .bar-dim { fill: #9aa3b5; }
 

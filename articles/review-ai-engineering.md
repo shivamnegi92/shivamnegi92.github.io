@@ -1,7 +1,7 @@
 ---
 title: AI Engineering by Chip Huyen: The Field Guide for the Foundation-Model Era
 kind: review
-date: 2026-10-10
+date: 2026-10-11
 order: 2
 slug: review-ai-engineering
 summary: A practitioner's map of building on foundation models, from evaluation and prompting to RAG, agents, fine-tuning, and inference optimization.

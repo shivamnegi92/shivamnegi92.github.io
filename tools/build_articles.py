@@ -24,7 +24,8 @@ from __future__ import annotations
 import argparse
 import re
 import sys
-from datetime import date
+from datetime import date, datetime
+from email.utils import format_datetime
 from html import escape
 from pathlib import Path
 
@@ -174,6 +175,7 @@ HEAD = """<!doctype html>
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
 <meta property="og:url" content="{url}">
+<meta property="og:image" content="{image}">
 <meta name="theme-color" content="#0b1020">
 <link rel="alternate" type="application/rss+xml" title="Shivam Negi: Writing" href="{base}writing/feed.xml">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%235b6cf6%27/%3E%3Ctext x=%2732%27 y=%2742%27 font-family=%27Arial%27 font-size=%2728%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3ESN%3C/text%3E%3C/svg%3E">
@@ -218,8 +220,9 @@ def article_page(a: dict, prev_a: dict | None, next_a: dict | None) -> str:
         (',"itemReviewed":{"@type":"Book","name":%s,"author":%s,"isbn":"%s"},"reviewRating":{"@type":"Rating","ratingValue":"%s","bestRating":"5"}'
          % (_json(a["book"]["title"]), _json(a["book"]["author"]), a["book"]["isbn"], a.get("rating", "")))
         if a["kind"] == "review" else "")
+    image = f"{SITE}/{a['book']['img']}" if a["kind"] == "review" else f"{SITE}/img/about.jpg"
     head = HEAD.format(title=escape(a["title"]), desc=escape(a["summary"]), url=url, ogtype="article",
-                       base="../../", ld=ld)
+                       base="../../", ld=ld, image=image)
     hero_book = ""
     if a["kind"] == "review":
         b = a["book"]
@@ -270,6 +273,10 @@ def _json(s: str) -> str:
     return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
+def _rfc822(d: str) -> str:
+    return format_datetime(datetime.fromisoformat(d + "T12:00:00+00:00"))
+
+
 def _pretty(d: str) -> str:
     y, m, dd = d.split("-")
     return f"{['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][int(m) - 1]} {int(dd)}, {y}"
@@ -293,7 +300,8 @@ def index_page(arts: list[dict]) -> str:
     guides = [a for a in arts if a["kind"] == "guide"]
     reviews = [a for a in arts if a["kind"] == "review"]
     head = HEAD.format(title="Writing", desc="Diagram-heavy guides on AI systems and reviews of the books that shaped them.",
-                       url=f"{SITE}/writing/", ogtype="website", base="../", ld="")
+                       url=f"{SITE}/writing/", ogtype="website", base="../", ld="",
+                       image=f"{SITE}/img/about.jpg")
     return head + f"""<main id="main">
 <header class="ahero idx"><div class="wrap">
   <p class="crumbs"><a href="../">Home</a> / Writing</p>
@@ -312,7 +320,7 @@ def index_page(arts: list[dict]) -> str:
 def feed(arts: list[dict]) -> str:
     items = "".join(
         f"<item><title>{escape(a['title'])}</title><link>{SITE}/writing/{a['slug']}/</link>"
-        f"<guid>{SITE}/writing/{a['slug']}/</guid><pubDate>{a['date']}</pubDate>"
+        f"<guid>{SITE}/writing/{a['slug']}/</guid><pubDate>{_rfc822(a['date'])}</pubDate>"
         f"<description>{escape(a['summary'])}</description></item>" for a in arts)
     return (f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Shivam Negi: Writing</title>'
             f"<link>{SITE}/writing/</link><description>Guides and book reviews on AI systems.</description>{items}</channel></rss>\n")

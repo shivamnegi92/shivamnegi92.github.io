@@ -1,7 +1,7 @@
 ---
 title: AI Agents in Action: A Practical Tour of Building Autonomous Systems
 kind: review
-date: 2026-10-03
+date: 2026-10-11
 order: 9
 slug: review-ai-agents-in-action
 summary: Micheal Lanham's hands-on guide covers agent architectures, tool use, memory, planning, multi-agent setups, and evaluation. Here is what it gets right and where production engineers need more.
@@ -10,7 +10,7 @@ book: AI Agents in Action | Micheal Lanham | Manning Publications, 2025 | 978163
 verdict: A broad, practical on-ramp to building LLM agents with lots of runnable examples. Pair it with a security-minded resource before you let an agent touch production.
 rating: 4
 ---
-Agent books are hard to write. The field changes every quarter, and frameworks rise and fall faster than a book goes to print. *AI Agents in Action* handles this sensibly. It teaches the durable **building blocks** of agents (actions, memory, knowledge, planning, feedback) and uses frameworks as vehicles rather than as the lesson.
+Agent books are hard to write. The field changes every quarter, and frameworks rise and fall faster than a book goes to print. *AI Agents in Action* handles this sensibly. It teaches the durable **building blocks** of agents (actions, memory, knowledge, planning, feedback) and uses frameworks such as AutoGen and CrewAI as vehicles rather than as the lesson. It also introduces Nexus, the author's own open-source agent platform, and borrows behavior trees from game AI as a way to give agents explicit, inspectable control flow.
 
 ## The agent anatomy the book teaches
 
@@ -53,6 +53,21 @@ It covers single agents, multi-agent conversations, agent platforms, and assista
 
 !!! tip Start with one agent. Move to multi-agent only when you can name the specific bottleneck, such as context length, specialization, or parallelism, that a second agent fixes.
 
+### Behavior trees: control flow you can read
+
+:::tree A behavior tree for a support agent, in the style the book teaches
+Root: selector
+  Sequence: known intent*
+    Classify request
+    Call the matching tool
+  Sequence: needs clarification
+    Ask a follow-up question
+  Fallback~
+    Hand off to a human
+:::
+
+This is one of the book's most practical ideas. A free-form LLM loop decides its own control flow, which makes it hard to test. A behavior tree makes the control flow explicit and leaves the LLM to handle each node, which is much easier to debug and evaluate.
+
 ### Planning and feedback
 
 The chapters on planning and feedback push beyond "call tools in a loop" toward agents that check their own work, which is the difference between a demo and a system.
@@ -76,13 +91,15 @@ Production agent
 
 I cover the security side in [How to Put Guardrails on an AI Agent](../guardrails-for-agents/), and grounded outcome evaluation is central to my [voice-agent research](https://arxiv.org/abs/2609.30798).
 
-:::bars Coverage by topic (my assessment)
-Building blocks + tools* | 9 | strong
-Multi-agent patterns | 8 | strong
-Memory + knowledge | 7 | good
-Evaluation rigor | 5 | moderate
-Security + guardrails! | 4 | light
-:::
+## My rubric
+
+| Topic | Coverage |
+|---|---|
+| Building blocks and tools | Strong |
+| Multi-agent patterns (AutoGen, CrewAI) | Strong |
+| Memory and knowledge | Good |
+| Evaluation rigor | Moderate |
+| Security and guardrails | Light: supplement it |
 
 ## Verdict
 

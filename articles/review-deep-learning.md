@@ -1,7 +1,7 @@
 ---
 title: Deep Learning by Goodfellow, Bengio, and Courville: Still the Foundation
 kind: review
-date: 2026-10-05
+date: 2026-10-11
 order: 7
 slug: review-deep-learning
 summary: The canonical deep learning textbook predates transformers, yet its treatment of optimization, regularization, and representation learning explains why modern models work.
@@ -10,7 +10,7 @@ book: Deep Learning | Ian Goodfellow, Yoshua Bengio, Aaron Courville | MIT Press
 verdict: Not a quick read and not about LLMs, but it is the theory base that makes everything after it legible. Read Part II properly once and keep it as a reference forever.
 rating: 4.5
 ---
-Every few months someone asks me whether this book is "still relevant" because it predates the transformer. My answer: the transformer is built from the parts this book explains. Residual connections, normalization, optimization dynamics, regularization, and representation learning are all here. Attention is the new ingredient. The kitchen is the same.
+Every few months someone asks whether this book is "still relevant" because it predates the transformer. The answer is yes, because the transformer is assembled from parts this book explains: optimization dynamics, regularization, normalization, skip connections (section 8.6.9 touches on them, and batch normalization gets section 8.7), and representation learning. Even attention appears, briefly, in the applications chapter. What is new since 2016 is how those parts are combined and scaled.
 
 ## The structure
 
@@ -48,7 +48,7 @@ Weight decay and dropout are still in modern LLM training recipes. Early stoppin
 Gradient descent -> Stochastic minibatches -> Momentum -> Adaptive learning rates (RMSProp, Adam)* -> Initialization + normalization
 :::
 
-The discussion of saddle points, ill-conditioning, and why "local minima" are rarely the real problem in high dimensions changed how I debug training runs.
+The discussion of saddle points, ill-conditioning, and why poor local minima are rarely the real obstacle in high dimensions is a better guide to debugging training runs than most blog posts.
 
 !!! tip When a training run diverges or stalls, the "practical methodology" chapter is still one of the best debugging checklists: verify the data pipeline, overfit a tiny batch, check gradient norms, and tune the learning rate first.
 
@@ -69,19 +69,23 @@ That right column is the conceptual root of every embedding model and every foun
 
 ## What is dated
 
-- No transformers or attention-centric architectures, and no large-scale pretraining or RLHF.
+- Attention gets only brief treatment, and there is no transformer, large-scale pretraining, or RLHF.
 - The generative-model chapters predate diffusion models.
 - Some RNN-heavy material is now mostly historical.
 
-:::bars How relevant each part is for an LLM engineer today (my assessment)
-Part I: Math foundations | 8 | high
-Part II: Practical networks* | 9 | very high
-Part III: Research frontiers | 5 | partly historical
-:::
+| Part | Relevance for an LLM engineer today |
+|---|---|
+| Part I: Applied math | High: the notation and tools you will need everywhere |
+| Part II: Modern practical networks | Very high: optimization and regularization are unchanged |
+| Part III: Research frontiers | Mixed: valuable background, partly historical |
 
 ## How to read it
 
-Do not read it cover to cover like a novel. Read Part I as needed, read Part II carefully with a notebook open, and dip into Part III for specific topics. It is freely readable online at deeplearningbook.org, which is a gift to the field.
+:::flow A reading path that works
+Part I as needed -> Part II with a notebook open* -> Part III by topic -> Pair with a modern LLM text
+:::
+
+Do not read it cover to cover like a novel. It is freely readable online at deeplearningbook.org, which is a gift to the field.
 
 ## Verdict
 

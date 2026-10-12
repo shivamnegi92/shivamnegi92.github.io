@@ -1,12 +1,12 @@
 ---
 title: How to Ship a Model Safely: Shadow, Canary, and the Rollback Button
 kind: guide
-date: 2026-10-02
+date: 2026-10-11
 order: 9
 summary: Offline metrics do not predict production. A deployment ladder of shadow traffic, canaries with guardrail metrics, and automatic rollback, the SRE way.
 tags: MLOps, deployment, canary, reliability
 ---
-Every ML engineer learns this once, painfully: the model that won offline loses online. Traffic shifts, features arrive late, latency blows a timeout, and a 2-point offline gain becomes a 5-point online regression. The fix is not better offline evaluation alone. It is a **deployment process that assumes you are wrong** until production proves otherwise.
+Every ML engineer learns this once: the model that won offline can lose online. Traffic shifts, features arrive late, latency blows a timeout, and an offline gain turns into an online regression. The fix is not better offline evaluation alone. It is a **deployment process that assumes you are wrong** until production proves otherwise.
 
 ## The deployment ladder
 
@@ -68,38 +68,43 @@ Evaluate canary window
 :::
 
 ```python
-def decide(baseline, canary, max_err_delta=0.002, max_p99_regress=0.10):
+def decide(baseline, canary, max_err_delta=0.002,
+           max_p99_regress=0.10, p99_ceiling_ms=1500):
+    # Degenerate inputs first: never compute a ratio you cannot trust.
+    if baseline.p99_ms <= 0 or canary.p99_ms <= 0:
+        return "hold", "missing latency data"
+    if canary.p99_ms > p99_ceiling_ms:
+        return "rollback", "absolute p99 ceiling breached"
     if canary.error_rate - baseline.error_rate > max_err_delta:
         return "rollback", "error rate regression"
-    if baseline.p99_ms and (canary.p99_ms / baseline.p99_ms - 1) > max_p99_regress:
-        return "rollback", "p99 latency regression"
-    if baseline.p99_ms == 0:
-        return "hold", "no baseline latency; cannot compute regression"
+    if canary.p99_ms / baseline.p99_ms - 1 > max_p99_regress:
+        return "rollback", "relative p99 regression"
     if significant_lift(baseline.success, canary.success):
         return "promote", "success metric up, guardrails held"
     return "hold", "inconclusive"
 ```
 
-!!! warning Handle the degenerate cases explicitly. A relative latency check that divides by a zero baseline silently computes "0% regression" and promotes a broken model. Add an absolute ceiling, too.
+!!! warning Handle degenerate inputs before any arithmetic. Depending on the language, a zero baseline either crashes the controller (Python raises) or produces NaN or infinity. In many languages NaN makes every comparison false, so "regression > 10%" quietly evaluates to false, and a broken model gets promoted. Check for missing data first, and keep an absolute ceiling alongside the relative one.
 
 ## Watch for training-serving skew
 
-:::bars Most common causes of offline-online gaps (illustrative)
-Feature skew (train vs. serve)! | 34 | 34%
-Distribution shift since training | 27 | 27%
-Latency or timeout fallbacks | 18 | 18%
-Label leakage offline | 12 | 12%
-Other | 9 | 9%
+When a model wins offline and loses online, check these causes in order. The order runs from most preventable to least:
+
+:::layers Usual suspects for an offline-online gap, most preventable first
+Feature skew! | Training and serving compute features with different code, or serving reads stale values
+Label leakage offline | The offline eval saw information that is not available at prediction time
+Timeout fallbacks | The new model is slower, so more requests silently fall back to defaults
+Distribution shift | Live traffic no longer looks like the training data
 :::
 
-Compute features with the **same code path** for training and serving, or log served features and train on those logs. Skew is the most common, and most preventable, cause of "worked offline."
+Compute features with the **same code path** for training and serving, or log the features you served and train on those logs. Skew is among the most common and most preventable causes of "it worked offline."
 
 ## Key takeaways
 
 - Assume the new model is worse until production says otherwise.
 - Shadow first: it is free truth with zero user risk.
 - Canary with explicit guardrails, and automate rollback.
-- Handle degenerate cases, such as zero baselines, explicitly.
+- Handle degenerate inputs, such as zero or missing baselines, before doing any arithmetic.
 - Eliminate training-serving skew with a shared feature path.
 
 **Further reading:** Chen, Murphy, et al., *Reliable Machine Learning* (O'Reilly, 2022), reviewed [here](../review-reliable-ml/). Runnable baseline: [canary_rollout_simulator in Practical AI Systems](https://github.com/shivamnegi92/practical-ai-systems).

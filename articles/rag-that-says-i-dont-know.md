@@ -1,7 +1,7 @@
 ---
 title: How to Build a RAG System That Says "I Don't Know"
 kind: guide
-date: 2026-10-07
+date: 2026-10-11
 order: 4
 summary: Retrieval-augmented generation fails quietly. Here is how to engineer retrieval, grounding, citation checks, and abstention so wrong answers become honest refusals.
 tags: RAG, retrieval, evaluation, grounding
@@ -19,15 +19,22 @@ Each arrow is a place where quality leaks. Most teams obsess over the generator.
 
 ## Where RAG actually fails
 
-:::bars Root causes of wrong RAG answers in a typical audit (illustrative)
-Right doc never retrieved! | 38 | 38%
-Retrieved, but chunk split the fact | 17 | 17%
-Retrieved, ranked too low | 14 | 14%
-Generator ignored the context | 16 | 16%
-Question has no answer in corpus | 15 | 15%
+When an answer is wrong, trace it back through the pipeline. Every wrong answer has exactly one first point of failure, and the fix depends entirely on which one:
+
+:::tree Triage a wrong RAG answer: find the first stage that failed
+Wrong answer
+  Answer exists in corpus?
+    No: unanswerable question!
+      Fix: abstention, not prompting
+    Yes: was it retrieved?
+      No: retrieval miss*
+        Fix: hybrid search, chunking
+      Yes: ranked in top k?
+        No: ranking miss
+        Yes: generation ignored it
 :::
 
-Look at the last bar. A meaningful slice of questions *cannot* be answered from your corpus. Without abstention, every one of those becomes a confident fabrication.
+The first branch matters most. Some questions *cannot* be answered from your corpus. Without abstention, every one of them becomes a confident fabrication, and no amount of prompt tuning fixes that.
 
 ## Fix retrieval before the prompt
 
@@ -47,14 +54,15 @@ Dense embeddings are great at meaning and bad at exact identifiers like part num
 :::
 
 ```python
-def hybrid(query, k=20):
+def hybrid(query, k=20, c=60):
     dense = vector_search(embed(query), k)
     sparse = bm25_search(query, k)
-    # Reciprocal rank fusion: robust, no score calibration needed.
+    # Reciprocal rank fusion (Cormack et al., 2009): score = sum of 1 / (c + rank),
+    # with 1-based ranks and c = 60. No score calibration between retrievers needed.
     scores = {}
     for ranked in (dense, sparse):
-        for rank, doc in enumerate(ranked):
-            scores[doc] = scores.get(doc, 0) + 1 / (60 + rank)
+        for rank, doc in enumerate(ranked, start=1):
+            scores[doc] = scores.get(doc, 0.0) + 1.0 / (c + rank)
     return sorted(scores, key=scores.get, reverse=True)[:k]
 ```
 
@@ -100,7 +108,7 @@ pt: Calibrated system* @ 0.85,0.85
 | Citation precision | Do citations support claims? | Entailment or audited judge |
 | Abstention accuracy | Refuses the unanswerable, answers the answerable | Include unanswerable questions in the eval set |
 
-!!! tip Put 15-20% unanswerable questions in your eval set on purpose. If you never test abstention, you will never get it.
+!!! tip Put unanswerable questions in your eval set on purpose, in roughly the proportion you see in real traffic. If you never test abstention, you will never get it.
 
 ## Key takeaways
 
@@ -110,4 +118,4 @@ pt: Calibrated system* @ 0.85,0.85
 - Gate on retrieval confidence, require citations, and verify grounding.
 - Evaluate answering and abstaining as two separate skills.
 
-**Further reading:** Lewis et al., *Retrieval-Augmented Generation for Knowledge-Intensive NLP* (2020). Runnable baselines: [doc_qa and citation_checker in Practical AI Systems](https://github.com/shivamnegi92/practical-ai-systems).
+**Further reading:** Lewis et al., *Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks* (2020). Cormack, Clarke, Buettcher, *Reciprocal Rank Fusion* (SIGIR, 2009). Runnable baselines: [doc_qa and citation_checker in Practical AI Systems](https://github.com/shivamnegi92/practical-ai-systems).

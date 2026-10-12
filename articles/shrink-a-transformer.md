@@ -1,7 +1,7 @@
 ---
-title: How to Shrink a Transformer 100x Without Losing Your Mind (or Accuracy)
+title: How to Shrink a Transformer for CPU Serving Without Losing Your Mind (or Accuracy)
 kind: guide
-date: 2026-10-10
+date: 2026-10-11
 order: 2
 summary: A field manual for distilling, pruning, and quantizing language models for CPU-only, latency-critical serving, and why most of the tricks fail before one works.
 tags: small language models, distillation, pruning, inference
@@ -12,17 +12,17 @@ This guide is the playbook I wish I had. It is opinionated, and it includes the 
 
 ## Know where the milliseconds go
 
-Do not compress blind. Profile first. For a decoder at small batch sizes, latency is dominated by memory bandwidth (moving weights), not FLOPs. For an encoder classifier, it is the sequence length times the number of layers.
+Do not compress blind. Profile first. For a decoder at small batch sizes, latency is dominated by memory bandwidth (moving weights), not arithmetic. For an encoder classifier, the cost is set by the layer count, the hidden size, and the sequence length.
 
-:::bars Where inference time goes in a small encoder classifier (illustrative profile)
-Embedding lookup | 4 | 4%
-Attention blocks | 46 | 46%
-Feed-forward blocks* | 38 | 38%
-Tokenizer + pre/post | 9 | 9%
-Classification head | 3 | 3%
+You can see where the arithmetic goes without a profiler. For one BERT-base layer (hidden size d = 768, feed-forward size 3072) at sequence length n = 128, count the multiply-accumulates per token:
+
+:::bars Multiply-accumulates per token in one BERT-base layer (d = 768, n = 128), in millions
+Q, K, V, output projections (4d squared) | 2.36 | 2.36M (32%)
+Attention scores + weighting (2nd) | 0.20 | 0.20M (3%)
+Feed-forward block (2 x d x 3072)* | 4.72 | 4.72M (65%)
 :::
 
-The lesson: attention and feed-forward blocks are about 85% of the bill. **Removing whole layers** removes both at once, which is why layer pruning tends to beat clever micro-optimizations.
+Two lessons fall out of the arithmetic. First, at this length the feed-forward block, not attention, dominates compute. The famous quadratic term only takes over at long sequences. Second, every term scales with the number of layers, so **removing whole layers** removes all three at once. That is why layer pruning tends to beat micro-optimizations.
 
 ## The compression ladder
 
@@ -37,7 +37,7 @@ Quantize | int8 or int4 weights. Big win when it works, fragile when it doesn't.
 Compile and fuse | ONNX, graph fusion, kernel tuning. Last mile, not first.
 :::
 
-!!! insight The single biggest win usually is not compression at all. It is **changing the task formulation**. If you are generating a JSON label token by token, you are paying for a decoder to do a classifier's job. One forward pass plus a classification head beats N autoregressive steps every time.
+!!! insight The biggest win often is not compression at all. It is **changing the task formulation**. If you generate a JSON label token by token, you pay for a decoder to do a classifier's job. One forward pass plus a classification head replaces the whole decode loop.
 
 ## Why generation is the wrong tool for classification
 
@@ -48,17 +48,17 @@ Compile and fuse | ONNX, graph fusion, kernel tuning. Last mile, not first.
 - Latency grows with label length
 - Flexible: handles open-ended outputs
 # Classify in one pass
-- One forward pass, softmax over labels
+- One forward pass (prefill), softmax over labels
 - No parse failures, by construction
-- Latency is constant
+- Latency independent of label length
 - Requires a fixed label set
 :::
 
-If your label set is fixed, choose the right column. You eliminate parse failures entirely, and you cut latency by roughly the number of output tokens.
+If your label set is fixed, choose the right column. You eliminate parse failures entirely and remove every decode step after the prompt is processed. With a long prompt the prefill still dominates, so measure the gain on your own inputs rather than assuming a multiple.
 
 ## Layer pruning that actually works
 
-Not all layers are equal. Middle-to-late layers in a fine-tuned model are often redundant for a narrow task. Here is the procedure:
+Not all layers are equal. For a narrow task, some layers of a fine-tuned model are often redundant, and removing them costs little after a short recovery fine-tune. Here is the procedure (`skip_layer` and `remove_layer` are stand-ins for your framework's equivalents):
 
 :::flow Iterative layer pruning with recovery
 Baseline eval -> Score each layer (probe or ablation) -> Drop lowest-impact layer* -> Fine-tune to recover -> Re-eval
@@ -76,14 +76,14 @@ def prune_once(model, eval_set):
     return victim, evaluate(model, eval_set)
 ```
 
-Stop when one more cut costs more accuracy than your budget allows. Plot the curve and you will usually see a long flat plateau followed by a cliff. Cut to the edge of the plateau, then back off one step.
+Stop when one more cut costs more accuracy than your budget allows. The typical shape is a long plateau followed by a cliff. Cut to the edge of the plateau, then back off one step for safety margin.
 
-:::quadrant Pruning curve: where to stop
-x: Layers removed | many
-y: Accuracy | high
-pt: Original model~ @ 0.05,0.9
-pt: Plateau edge* @ 0.55,0.88
-pt: Cliff! @ 0.8,0.4
+:::curve Typical pruning curve: accuracy vs. fraction of layers removed
+x: Fraction of layers removed
+y: Task accuracy
+series: Recovered accuracy* | 0,0.9 0.15,0.9 0.3,0.89 0.45,0.88 0.55,0.86 0.65,0.74 0.75,0.52 0.85,0.3
+mark: Stop here* @ 0.45,0.88
+mark: Cliff! @ 0.7,0.63
 :::
 
 ## The graveyard: what failed, and why
@@ -92,7 +92,7 @@ Negative results save you weeks. These are common failure modes when compressing
 
 | Technique | Typical failure | Root cause |
 |---|---|---|
-| Naive int8 quantization | Accuracy collapse | Activation outliers in a few channels blow up the quantization range |
+| Naive int8 on large decoders | Accuracy collapse | Dettmers et al. found systematic activation outliers emerging around 6.7B parameters; they wreck a shared quantization range. Small encoders often quantize fine, so test instead of assuming |
 | ONNX export of a decoder | Export errors or slow graphs | Dynamic KV-cache shapes do not map cleanly to static graphs |
 | `torch.compile` on CPU | Crashes or no speedup | Codegen paths are less mature on CPU than on GPU |
 | Vendor CPU extensions | No speedup | Kernels assume instruction sets (for example AVX-512) your fleet lacks |
@@ -111,7 +111,7 @@ Soft targets carry "dark knowledge": the teacher says *this is 70% billing, 25% 
 
 ## Key takeaways
 
-- Profile before compressing. Memory and layer count usually dominate.
+- Profile before compressing. Count where the arithmetic goes; it is often not where you assume.
 - Fix the task formulation first: classify, don't generate, when labels are fixed.
 - Prune whole layers iteratively, with recovery fine-tuning, and stop at the plateau edge.
 - Keep a graveyard of failed techniques with root causes. It is your most valuable doc.

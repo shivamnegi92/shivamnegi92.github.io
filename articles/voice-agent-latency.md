@@ -1,12 +1,12 @@
 ---
 title: Why Your Voice Agent Feels Rude: Latency, Turn-Taking, and Barge-In
 kind: guide
-date: 2026-10-08
+date: 2026-10-11
 order: 3
 summary: A systems view of real-time voice agents, why 800 ms feels broken, and how to engineer the pipeline, the turn-taking model, and the evals so conversations feel human.
 tags: voice agents, latency, turn-taking, evaluation
 ---
-A voice agent can have a perfect transcript and a perfect answer and still feel broken. Humans hand turns back and forth with gaps of roughly 200 ms in natural conversation. Cross about a second of silence and people start repeating themselves, talking over the agent, or hanging up. In voice, **timing is a correctness property**, not a performance nicety.
+A voice agent can have a perfect transcript and a perfect answer and still feel broken. Across ten languages, Stivers et al. (2009) found that people hand turns back and forth with a typical gap of about 200 ms. Pipelines that take a second or more to respond are fighting a deeply ingrained human rhythm, and users react by repeating themselves or talking over the agent. In voice, **timing is a correctness property**, not a performance nicety.
 
 ## Two architectures, two failure profiles
 
@@ -23,16 +23,18 @@ A voice agent can have a perfect transcript and a perfect answer and still feel 
 - Harder to ground tools and enforce policy
 :::
 
-Most production systems today are cascaded or hybrid, because debuggability and tool-calling matter more than shaving the last 100 ms. Either way, you need a latency budget.
+Most production systems today are cascaded or hybrid, because debuggability and tool calling matter more than shaving the last 100 ms. Either way, you need a latency budget.
 
 ## The latency budget
 
-:::bars Illustrative end-to-end budget for a cascaded agent (target under ~800 ms to first audio)
-End-of-turn detection | 200 | ~200 ms
-Streaming ASR finalize | 100 | ~100 ms
-LLM time-to-first-token* | 300 | ~300 ms
-TTS time-to-first-audio | 150 | ~150 ms
-Network + jitter buffer | 80 | ~80 ms
+Write the budget down per stage, and make it add up. Here is an example target for a cascaded agent aiming at 800 ms to first audio. Your numbers will differ, but the discipline should not:
+
+:::bars Example latency budget, 800 ms to first audio (a design target, not a measurement)
+End-of-turn detection | 200 | 200 ms
+Streaming ASR finalize | 80 | 80 ms
+LLM time-to-first-token* | 300 | 300 ms
+TTS time-to-first-audio | 150 | 150 ms
+Network + jitter buffer | 70 | 70 ms
 :::
 
 Notice the biggest line items: deciding the user is *done*, and the LLM's first token. You attack them with streaming and overlap, not just faster models.
@@ -87,13 +89,14 @@ A backchannel ("mm-hmm", "right") is not an interruption. A sneeze is not an int
 
 ## Measure what users feel
 
-Word error rate and response quality are necessary but not sufficient. A rigorous evaluation reports **timing, recovery, and grounded outcomes** together. That is the core idea behind the TRG reporting standard I proposed in my [voice-agent evaluation work](https://arxiv.org/abs/2609.30798).
+Word error rate and response quality are necessary but not sufficient. A rigorous evaluation reports **timing, recovery, and grounded outcomes** together, under disclosed conditions. That is the core idea behind TRG, the reporting standard I proposed in my [voice-agent evaluation work](https://arxiv.org/abs/2609.30798).
 
-:::layers What a complete voice-agent eval reports (TRG)
-Timing* | Latency with clock anchors and statistics, plus whether speaking was appropriate at that moment
-Recovery | Restoring conversation and task state after interruptions, measured separately from clean runs
-Grounded outcome | Did the authorized action actually happen in the external system? Include justified no-action
-Conditions | Accents, noise, load, and evaluator disclosures, so results can be compared
+:::layers The TRG axes, plus the conditions every report must disclose
+T: Timing* | Latency with clock anchors and statistics, plus whether speaking was appropriate at that moment
+R: Recovery | Restoring conversation and task state after a disruption, measured separately from clean runs
+G: Grounded outcome | Did the authorized action actually happen in the external system? Includes justified no-action
+M: Multiparty~ | Conditional axis: appropriate speech and silence when several participants are legitimate
+Conditions | Not an axis: language, accent, noise, speaker, load, and evaluator disclosures
 :::
 
 !!! tip Report latency as a distribution (p50, p90, p99) with the exact start and stop clock points. "Average latency 600 ms" with no anchors is not a measurement.
@@ -106,4 +109,4 @@ Conditions | Accents, noise, load, and evaluator disclosures, so results can be 
 - Tune barge-in as a classifier that balances sensitivity and selectivity.
 - Evaluate timing, recovery, and grounded outcomes together.
 
-**Further reading:** Negi, Rawat, Jain, [Evaluating Real-Time Voice Agents](https://arxiv.org/abs/2609.30798) (2026), and the companion [corpus and TRG validator](https://github.com/shivamnegi92/voice-agent-eval-corpus).
+**Further reading:** Stivers et al., *Universals and cultural variation in turn-taking in conversation* (PNAS, 2009). Negi, Rawat, Jain, [Evaluating Real-Time Voice Agents](https://arxiv.org/abs/2609.30798) (2026), and the companion [corpus and TRG validator](https://github.com/shivamnegi92/voice-agent-eval-corpus).

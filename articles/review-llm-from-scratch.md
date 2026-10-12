@@ -1,7 +1,7 @@
 ---
 title: Build a Large Language Model (From Scratch): Understanding by Building
 kind: review
-date: 2026-10-08
+date: 2026-10-11
 order: 4
 slug: review-llm-from-scratch
 summary: Sebastian Raschka walks you from tokenizer to pretraining to fine-tuning a GPT-style model in plain PyTorch. The fastest way to stop treating LLMs as magic.
@@ -10,17 +10,15 @@ book: Build a Large Language Model (From Scratch) | Sebastian Raschka | Manning 
 verdict: The best hands-on path from "I use LLMs" to "I understand LLMs." Every engineer working on LLM systems should implement one once, and this book is the way to do it.
 rating: 5
 ---
-Richard Feynman's line, "What I cannot create, I do not understand," is the thesis of this book. Raschka has you build a GPT-style model from an empty Python file, one component at a time, in plain PyTorch.
-
-I have built transformers before. I still learned things.
+Richard Feynman's line, "What I cannot create, I do not understand," is the thesis of this book. Raschka has you build a GPT-style model from an empty Python file, one component at a time, in plain PyTorch. Even if you have implemented a transformer before, building one this carefully exposes details you skipped the first time.
 
 ## The build path
 
 :::flow What you build, chapter by chapter
-Text data + tokenizer -> Attention mechanisms* -> GPT architecture -> Pretraining on unlabeled text -> Fine-tune for classification -> Instruction fine-tuning
+Text data + tokenizer -> Attention mechanisms* -> GPT architecture -> Pretrain, then load GPT-2 weights -> Fine-tune for classification -> Instruction fine-tuning
 :::
 
-Each stage produces running code you understand line by line. No `from transformers import magic`.
+Each stage produces running code you understand line by line. No `from transformers import magic`. The payoff in Chapter 5 is memorable: after pretraining a tiny model yourself, you load OpenAI's released GPT-2 weights into *your own* architecture, and it works, which proves your implementation matches the real thing.
 
 ## What the book gets right
 
@@ -54,7 +52,7 @@ Once you have written this yourself, model cards stop being mysterious. "24 laye
 # Instruction fine-tuning
 - Train on instruction-response pairs
 - Model learns to follow prompts
-- Evaluated with a judge model
+- Scored by a larger model (Llama 3 via Ollama)
 :::
 
 !!! insight The classification chapter quietly teaches one of the most valuable production lessons: **if your outputs are a fixed label set, use a classification head, not generation.** It is faster and never produces malformed output. I make the same argument in my [compression guide](../shrink-a-transformer/).
@@ -62,19 +60,19 @@ Once you have written this yourself, model cards stop being mysterious. "24 laye
 ## What to know going in
 
 - You need comfortable Python and basic PyTorch. The appendix helps, but it is not a PyTorch course.
-- You will pretrain on small data, so the model will not be impressive. That is the point: the *mechanics* are identical at scale.
-- It intentionally does not cover distributed training, RLHF in depth, or inference serving at scale.
+- You will pretrain on small data, so your own model will not be impressive. That is the point: the *mechanics* are identical at scale, and loading GPT-2's weights shows it.
+- It intentionally does not cover distributed training, RLHF in depth, or serving at scale.
 
-## How I use it
+## Who gets the most out of it
 
-I recommend it to every mentee who wants to move from prompting to engineering, and I keep [my own from-scratch implementation](https://github.com/shivamnegi92/Build-a-Large-Language-Model-from-Scratch) public as a study companion.
+| Reader | Value |
+|---|---|
+| Prompt engineers moving into ML | Highest: replaces magic with mechanics |
+| Data scientists | Very high |
+| Backend engineers | High, if comfortable with PyTorch basics |
+| Experienced deep learning researchers | A clean refresher, plus a teaching reference |
 
-:::bars What readers gain, by background (my mentoring experience, illustrative)
-Prompt engineers moving to ML* | 9 | transformative
-Data scientists | 8 | very high
-Backend engineers | 7 | high
-Experienced DL researchers | 4 | moderate refresher
-:::
+I keep [my own from-scratch implementation](https://github.com/shivamnegi92/Build-a-Large-Language-Model-from-Scratch) public as a study companion.
 
 ## Verdict
 

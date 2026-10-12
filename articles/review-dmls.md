@@ -1,7 +1,7 @@
 ---
 title: Designing Machine Learning Systems: The Book That Made MLOps a Discipline
 kind: review
-date: 2026-10-09
+date: 2026-10-11
 order: 3
 slug: review-dmls
 summary: Chip Huyen's earlier book treats ML as a living system, with data, features, deployment, monitoring, and continual learning, rather than a notebook artifact.
@@ -69,14 +69,19 @@ The book's taxonomy of shifts is the clearest I know:
 
 ### Leakage, everywhere
 
-The chapter on data leakage lists the sneaky ways future information enters training: time-based splits done wrong, duplicates across splits, and features computed with global statistics. I have personally been bitten by every one of them.
+The chapter on data leakage lists the subtle ways future information gets into training. It is the checklist I wish every team ran before trusting an offline number:
 
-:::bars Common leakage sources (from the book's taxonomy, weighting is my experience)
-Random split on time-series data! | 30 | very common
-Duplicates across train/test | 25 | very common
-Scaling with global statistics | 18 | common
-Label-derived features | 15 | common
-Process-induced leakage | 12 | sometimes
+:::tree Leakage sources the book catalogs
+Data leakage
+  Splitting
+    Random split on time-correlated data!
+    Duplicates across train and test
+  Preprocessing
+    Scaling with global statistics
+    Filling missing values with full-data stats
+  Features
+    Features derived from the label*
+    Process-induced signals, such as scan device
 :::
 
 ## Limitations
