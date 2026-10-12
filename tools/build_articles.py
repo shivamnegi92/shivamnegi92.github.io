@@ -119,7 +119,7 @@ def body_html(md: str, slug: str) -> tuple[str, list[tuple[str, str]], int]:
             i += 1
             while i < len(lines) and lines[i].startswith("    "):
                 block.append(lines[i].strip()); i += 1
-            out.append(f'<aside class="callout c-{kind}"><strong>{escape(kind.title())}</strong> {inline(" ".join(block))}</aside>')
+            out.append(f'<div class="callout c-{kind}"><strong>{escape(kind.title())}</strong> {inline(" ".join(block))}</div>')
             continue
         m = re.match(r"(#{2,3}) (.*)", s)
         if m:
@@ -203,7 +203,7 @@ def stars(rating: float) -> str:
     full = int(rating)
     half = rating - full >= 0.5
     s = "\u2605" * full + ("\u00bd" if half else "") + "\u2606" * (5 - full - (1 if half else 0))
-    return f'<span class="stars" aria-label="{rating} out of 5">{s}</span>'
+    return f'<span class="stars" aria-label="provisional assessment: {rating} out of 5">{s}</span>'
 
 
 def read_minutes(md: str) -> int:
@@ -234,7 +234,7 @@ def article_page(a: dict, prev_a: dict | None, next_a: dict | None) -> str:
     <dt>Author</dt><dd>{escape(b['author'])}</dd>
     <dt>Publisher</dt><dd>{escape(b['pub'])}</dd>
     <dt>ISBN</dt><dd>{escape(b['isbn'])}</dd>
-    <dt>My rating</dt><dd>{stars(float(a['rating']))} <b>{a['rating']}/5</b></dd>
+    <dt>Assessment</dt><dd>{stars(float(a['rating']))} <b>{a['rating']}/5</b><br><small>provisional, based on public materials</small></dd>
   </dl>
   <p class="verdict"><span>Verdict</span>{inline(a['verdict'])}</p>
 </div>"""

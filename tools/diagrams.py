@@ -302,14 +302,20 @@ def curve(lines, title, uid):
     body.append(_text(L + PW / 2, T + PH + 22, [cfg.get("x", "") + " \u2192"], "t t-sm"))
     body.append(f'<text class="t t-sm" text-anchor="middle" transform="translate({L - 24} {T + PH / 2}) rotate(-90)">'
                 f'{escape(cfg.get("y", ""))} \u2192</text>')
-    lx = L
     legend_y = T + PH + 48
+    legend_x, legend_row, legend_step = L, 0, 28
     for name, cls, xy in series:
         d = " ".join(f"{'M' if j == 0 else 'L'}{px(x):.1f} {py(y):.1f}" for j, (x, y) in enumerate(xy))
         body.append(f'<path class="ln ln-{cls}" d="{d}"/>')
-        body.append(f'<path class="ln ln-{cls}" d="M{lx} {legend_y} h28"/>')
-        body.append(_text(lx + 36, legend_y, [name], f"t t-{cls}x", "start"))
-        lx += 36 + len(name) * CHAR + 34
+        item_w = 36 + len(name) * CHAR + 34
+        if legend_x + item_w > L + PW:
+            legend_row += 1
+            legend_x = L
+        y = legend_y + legend_row * legend_step
+        body.append(f'<path class="ln ln-{cls}" d="M{legend_x} {y} h28"/>')
+        body.append(_text(legend_x + 36, y, [name], f"t t-{cls}x", "start"))
+        legend_x += item_w
+    legend_bottom = legend_y + legend_row * legend_step
     for label, cls, x, y in marks:
         body.append(f'<circle class="pt pt-{cls}" cx="{px(x):.1f}" cy="{py(y):.1f}" r="7"/>')
         # centre the label directly below a high point (or above a low one), where
@@ -319,7 +325,7 @@ def curve(lines, title, uid):
         bx = min(max(px(x) - width / 2, L + 4), L + PW - width - 4)
         body.append(f'<rect class="lbl-bg" x="{bx:.1f}" y="{py(y) + dy - 11:.1f}" width="{width:.1f}" height="22" rx="5"/>')
         body.append(_text(bx + width / 2, py(y) + dy, [label], f"t t-{cls}x"))
-    return _svg(legend_y + 18, "".join(body), title, uid)
+    return _svg(legend_bottom + 18, "".join(body), title, uid)
 
 
 RENDERERS = {f.__name__: f for f in (flow, layers, compare, loop, seq, quadrant, tree, bars, curve)}

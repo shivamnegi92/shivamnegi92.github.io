@@ -92,7 +92,7 @@ Note the `None`. When both paths fail, labeling the example "do not escalate" wo
 
 Sweep the router threshold and plot quality against escalation rate. Two reference points anchor the chart: never escalate, and always escalate. Escalating a *random* x% of traffic lands on the straight line between them. There is also a hard ceiling: escalating x% of traffic can fix at most x% of answers, so no router can climb faster than a slope of 1. A useful router hugs that ceiling at first, then flattens once the fixable requests are exhausted. A router on or below the random line is no better than a coin. Pick the knee: quality close to "always escalate" at a fraction of the cost.
 
-:::curve Quality vs. escalation rate as you sweep the router threshold (System 1 alone: 78%, always System 2: 90%)
+:::curve Conceptual quality vs. escalation rate as you sweep the router threshold
 x: Share of traffic escalated
 y: Task accuracy
 series: Random escalation~ | 0,0.78 1,0.9
@@ -100,7 +100,7 @@ series: Good router* | 0,0.78 0.05,0.825 0.1,0.86 0.15,0.882 0.3,0.895 1,0.9
 mark: Knee* @ 0.15,0.882
 :::
 
-In this example only 12% of requests can be fixed by escalation at all (90% minus 78%), which is why a good router finds most of the gain by escalating about 15% of traffic.
+In this illustrative example, the fast path starts at 78% accuracy and the slow path reaches 90%, leaving at most twelve percentage points of errors that escalation could fix. Escalating 15% of traffic raises accuracy by 6.5 percentage points in the sketch, below the theoretical ceiling. These are drawn values, not measured results; do not infer a universal router rate or gain. Compute the curve from paired outcomes on your data, compare against random routing at the same budget, and include uncertainty. If the measured router sits below the random baseline, its ranking adds no value at that operating point.
 
 ## The verifier decides whether System 2 is worth paying for
 
@@ -131,6 +131,75 @@ Prefer verifiers higher in the tree. Executing code and checking state are close
 | Overconfidence | Calibrate the gate on held-out data, monthly | Uncalibrated confidence makes the gate decorative |
 
 !!! warning Watch the escalation rate as a health metric. If it creeps toward a large share of traffic, your fast path is too weak or your router too nervous. A two-speed system only pays off when the fast path handles the bulk of requests, so fix System 1 before buying more System 2.
+
+## Build labels that do not teach the router a lie
+
+The simple labeler above illustrates the idea but is intentionally not a production evaluator. Each call can be stochastic, the grader can be wrong, and “slow beats fast” may depend on the task’s risk. Run repeated evaluations with fixed prompt and decoding policies, preserve grader evidence, and manually review disagreements. If the answer has objectively verifiable outcomes-code execution, a database state change, arithmetic, or a cited source-prefer that outcome over a second model’s preference. If you use a model judge, calibrate it against human judgments and report its agreement and known blind spots.
+
+Define the target label with a decision policy, not only answer quality. A slow path that takes too long, violates a tool permission, or produces an ungrounded claim may not be an improvement. One useful label is “escalation produces a better acceptable outcome within the latency and cost budget.” That prevents the router from learning to escalate requests where the slow model is more verbose but not more useful. Keep a separate “neither path succeeds” label for triage rather than silently forcing every example into easy or hard.
+
+Build splits by user, conversation, source document, or time where appropriate. A random row split can place near-duplicate requests in both train and test, making routing look better than it is. Include difficult, rare, and adversarial examples, but do not let a synthetic challenge set dominate the natural traffic mix. Report both overall performance and targeted failure categories, and preserve an untouched test split until the router threshold is selected.
+
+## Threshold selection: calculate the ceiling honestly
+
+A router is a ranking system with a constrained budget. For each threshold, measure the share escalated, fast-path quality, slow-path quality, total quality, latency, and cost. The always-fast and always-slow endpoints provide comparison points, but the actual curve depends on which examples the router selects. Estimate uncertainty with a method suited to your data unit-resample users or sessions when requests within one conversation are correlated, rather than pretending every message is independent.
+
+There is a useful hard bound for the accuracy curve. Suppose a fraction `x` of all requests is escalated, and escalation can improve accuracy by at most one point per request. The total accuracy increase over the fast-only baseline therefore cannot exceed `x` percentage points. More generally, if escalation can only correct some selected errors and can also introduce regressions, the net gain is lower. A curve that rises by more than x percentage points at escalation share x has inconsistent arithmetic or a changed evaluation population.
+
+:::curve Conceptual router curve: accuracy vs. escalation share, bounded by the maximum possible gain
+x: Share of requests escalated
+y: Accuracy
+series: Fast path only | 0,0.78 1,0.78
+series: Maximum possible if every escalation fixes one error | 0,0.78 0.05,0.83 0.1,0.88 0.15,0.93 0.22,1.0
+series: Illustrative measured router~ | 0,0.78 0.05,0.81 0.1,0.835 0.15,0.845 0.22,0.85 1,0.85
+series: Random routing if slow path reaches 0.85! | 0,0.78 1,0.85
+mark: Example operating point* @ 0.15,0.845
+:::
+
+The curves use **illustrative endpoints and values**, not measured results. In the example, escalating 15% raises accuracy by 6.5 percentage points, below the 15-point theoretical ceiling. Do not infer a universal router rate or accuracy gain from a drawn curve. Compute your own from paired outcomes, compare against random routing at the same budget, and include uncertainty. If the measured curve is below that baseline, the router’s ranking adds no value at that operating point.
+
+A practical threshold policy can combine a maximum escalation share with a minimum expected benefit and a safety override. For example, route any request matching a high-risk rule to a reviewed path regardless of model confidence; for ordinary traffic, escalate only when the calibrated router score exceeds a threshold that fits the budget. This avoids using an average-quality objective to suppress rare but severe cases. Rules should be explicit, versioned, and reviewed for coverage gaps rather than quietly accumulating regexes.
+
+## Make confidence usable
+
+Token likelihood is not the same as correctness. Language models can assign high probability to a wrong answer, especially when the prompt resembles familiar text. Calibrate confidence on held-out examples from the intended deployment domain, using methods such as reliability diagrams and expected calibration error with their limitations documented. Check calibration separately for important slices; an aggregate calibration score can mask a poor subgroup. If the model or prompt changes, recalibrate-the old confidence mapping may no longer mean the same thing.
+
+An abstention is a valid system output. The fast path can say it is uncertain, ask a clarifying question, or hand off to a human instead of triggering an expensive chain automatically. Distinguish uncertainty about the answer from missing information: a user’s ambiguous request may be best resolved by asking one question, while a high-risk factual question may warrant retrieval and verification. Avoid treating disagreement between two samples as a clean confidence estimate unless the relationship between disagreement and error has been measured.
+
+## System 2 is a bounded workflow, not a magic model
+
+Write down the slow path as a state machine. Each transition should have an input contract, a deadline, a maximum number of calls, and a recoverable failure outcome. A typical sequence is: classify the task, retrieve authorized context, plan only if needed, call allowlisted tools, validate tool arguments, execute with least privilege, verify the result, and compose a concise response. Tool output is untrusted data; do not let retrieved text redefine permissions or override system policy. Treat prompt injection in retrieved documents as a security event and test it explicitly.
+
+:::flow Bounded slow-path workflow
+Escalation -> Retrieve permitted evidence -> Plan within token and call budgets -> Validate tool arguments -> Execute allowlisted action -> Verify state -> Respond or hand off
+:::
+
+Set independent budgets for wall-clock time, model tokens, tool calls, and external side effects. A timeout should cancel work where possible; otherwise a timed-out user request can keep consuming resources. Use idempotency keys for retryable actions and require explicit confirmation for consequential or irreversible operations. If verification fails, do not claim success. Return a safe failure or handoff with enough context for recovery.
+
+A verifier should match the claim. If the system says it booked an appointment, query the booking state; if it says code passes, run the tests; if it states a retrieved fact, check that the cited passage supports the claim. Schema validation catches malformed output but cannot establish truth. A second model judge is a weaker check when it shares the same model family, prompt assumptions, or blind spots. Use independent evidence when available and log what was checked without retaining unnecessary sensitive content.
+
+## Operational metrics and failure drills
+
+Track fast-path and slow-path quality separately, router false negatives and false positives on audited samples, escalation share, end-to-end latency percentiles, timeout rate, tool success, verifier rejection, fallback/handoff, and cost per completed task. Keep denominators and cohort definitions visible. A rising escalation rate can mean traffic shifted, the fast model regressed, confidence calibration drifted, or the router threshold changed; the metric is an alert to investigate, not a diagnosis by itself.
+
+:::compare Routing failures and first response
+# Escalates too little
+- Audit hard examples missed by router
+- Check subgroup and out-of-domain recall
+- Revisit high-risk overrides
+# Escalates too much
+- Check calibration and data drift
+- Find fast-path capability gaps
+- Review slow-path value per request
+:::
+
+Run failure drills for slow-model timeout, retriever outage, malformed tool output, verifier disagreement, rate limiting, and a prompt-injection document. Confirm the system degrades safely: bounded retries, no duplicate side effects, and a user-visible handoff when appropriate. For an experiment, compare a fixed router threshold against fast-only, always-slow, and random escalation at matched budgets. Keep assignment and measurement consistent, and do not tune repeatedly on the final test set.
+
+## Implementation checklist
+
+Start with a narrow task where outcomes are measurable. Create a versioned evaluation set with realistic inputs, hard negatives, policy-sensitive cases, and duplicated-user grouping. Run both paths under declared decoding and tool policies. Label “escalation helped” using task success plus latency, cost, and safety constraints. Train or configure the router on training data, choose its threshold on validation data, and confirm the curve on a held-out set. Add an explicit high-risk policy path, a confidence abstention option, per-request budgets, and independent verification for external actions.
+
+Before increasing traffic, shadow the router and both paths where safe, review missed escalations, and measure resource consumption. Canary the complete system, not just the model: a router change can shift load enough to overload the slow path. Monitor queueing and failures, keep a kill switch, and preserve the previous routing policy for rollback. Re-evaluate after changes to models, prompts, tools, or traffic mix.
 
 ## Key takeaways
 

@@ -18,14 +18,26 @@ sys.path.insert(0, str(Path(__file__).parent))
 from build_articles import SRC, parse  # noqa: E402
 
 ROOT = SRC.parent
-MIN_DIAGRAMS = 4
+MIN_WORDS = 2_000
 WEASEL = ("illustrative", "my experience")      # numbers must be sourced or derivable
 HYPE = ("revolutionary", "game-changer", "game changer", "mind-blowing", "100x", "10x")
 BANNED_CHARS = {"\u2014": "em dash"}
 
+def prose_word_count(body: str) -> int:
+    """Count prose only, excluding front matter, diagram DSL, and fenced code."""
+    body = re.sub(r"^:::[^\n]*\n.*?^:::$", " ", body, flags=re.S | re.M)
+    body = re.sub(r"^```.*?^```$", " ", body, flags=re.S | re.M)
+    body = re.sub(r"^---.*?^---\s*", " ", body, flags=re.S | re.M)
+    return len(re.findall(r"\b[\w’'-]+\b", body))
+
 
 def lint(a: dict) -> list[str]:
     errs, body, slug = [], a["body"], a["slug"]
+
+    # --- word count: actual prose, not diagram labels or code fences
+    words = prose_word_count(body)
+    if words < MIN_WORDS:
+        errs.append(f"{words} prose words (minimum {MIN_WORDS}; code and diagram markup excluded)")
 
     # --- metadata
     if not 50 <= len(a["summary"]) <= 200:
@@ -54,8 +66,8 @@ def lint(a: dict) -> list[str]:
 
     # --- diagrams
     blocks = re.findall(r"^:::(\w+) ?([^\n]*)\n(.*?)^:::$", body, re.S | re.M)
-    if len(blocks) < MIN_DIAGRAMS:
-        errs.append(f"only {len(blocks)} diagrams (min {MIN_DIAGRAMS})")
+    if len(blocks) < 4:
+        errs.append(f"only {len(blocks)} diagrams (min 4)")
     for kind, caption, content in blocks:
         if not caption.strip():
             errs.append(f"{kind} diagram without caption")
