@@ -60,7 +60,7 @@
 <aside class="callout c-insight"><strong>Insight</strong> Transform is the cheapest fix for the most common production ML bug, training-serving skew. If you adopt only one pattern from this book, adopt this one.</aside>
 <h3 id="repeatable-splitting">Repeatable Splitting</h3>
 <p>Split by hashing a stable key, such as user ID or date, rather than randomly. Splits are reproducible, and related records cannot leak across train and test.</p>
-<pre class="code"><span class="lang">python</span><code>import hashlib
+<pre class="code" tabindex="0" role="region" aria-label="Scrollable python block"><span class="lang">python</span><code>import hashlib
 
 def split_of(key: str, test_pct=10) -&gt; str:
     bucket = int(hashlib.md5(key.encode()).hexdigest(), 16) % 100
@@ -70,7 +70,7 @@ def split_of(key: str, test_pct=10) -&gt; str:
 <h2 id="limitations">Limitations</h2>
 <ul><li>Examples lean heavily on Google Cloud. The patterns are portable, but the code is not.</li><li>Published in 2020, so LLM-era patterns (RAG, tool use, guardrails, LLM-as-judge) are absent. A second edition would be welcome.</li></ul>
 <h2 id="the-patterns-with-the-highest-return">The patterns with the highest return</h2>
-<div class="table"><table><thead><tr><th>Pattern</th><th>Fixes</th><th>Return on adoption</th></tr></thead><tbody><tr><td>Transform</td><td>Training-serving skew</td><td>Highest: prevents a whole bug class</td></tr><tr><td>Repeatable Splitting</td><td>Leakage and irreproducible evals</td><td>High, and nearly free</td></tr><tr><td>Cascade</td><td>Rare-case handling, cost</td><td>High for routing workloads</td></tr><tr><td>Neutral Class</td><td>Forced choices on ambiguous inputs</td><td>Medium, underused</td></tr><tr><td>Two-Phase Predictions</td><td>On-device cost and latency</td><td>High where edge devices are involved</td></tr></tbody></table></div>
+<div class="table" tabindex="0" role="region" aria-label="Scrollable data table"><table><thead><tr><th>Pattern</th><th>Fixes</th><th>Return on adoption</th></tr></thead><tbody><tr><td>Transform</td><td>Training-serving skew</td><td>Highest: prevents a whole bug class</td></tr><tr><td>Repeatable Splitting</td><td>Leakage and irreproducible evals</td><td>High, and nearly free</td></tr><tr><td>Cascade</td><td>Rare-case handling, cost</td><td>High for routing workloads</td></tr><tr><td>Neutral Class</td><td>Forced choices on ambiguous inputs</td><td>Medium, underused</td></tr><tr><td>Two-Phase Predictions</td><td>On-device cost and latency</td><td>High where edge devices are involved</td></tr></tbody></table></div>
 <h2 id="verdict">Verdict</h2>
 <p>Four stars. Not flashy, and dated in places, but it is the book that gives ML teams a common language. Buy a copy for the team shelf.</p>
       <div class="author"><img src="../../img/about.jpg" alt="" width="56" height="56"><p><strong>Shivam Negi</strong> is an AI engineer and Principal Data Scientist who works on evaluating voice agents, small language models, and applied ML. <a href="../../">More about me</a></p></div>

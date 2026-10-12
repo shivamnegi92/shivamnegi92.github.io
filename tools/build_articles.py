@@ -109,7 +109,8 @@ def body_html(md: str, slug: str) -> tuple[str, list[tuple[str, str]], int]:
             while not lines[i].strip().startswith("```"):
                 block.append(lines[i]); i += 1
             label = f'<span class="lang">{escape(lang)}</span>' if lang else ""
-            out.append(f'<pre class="code">{label}<code>{escape(chr(10).join(block))}</code></pre>')
+            region_label = escape(lang or "code")
+            out.append(f'<pre class="code" tabindex="0" role="region" aria-label="Scrollable {region_label} block">{label}<code>{escape(chr(10).join(block))}</code></pre>')
             i += 1; continue
         if s.startswith("!!!"):
             flush()
@@ -144,7 +145,7 @@ def body_html(md: str, slug: str) -> tuple[str, list[tuple[str, str]], int]:
             head, rest = rows[0], [r for r in rows[1:] if not set("".join(r)) <= set("-: ")]
             th = "".join(f"<th>{inline(c)}</th>" for c in head)
             tb = "".join("<tr>" + "".join(f"<td>{inline(c)}</td>" for c in r) + "</tr>" for r in rest)
-            out.append(f'<div class="table"><table><thead><tr>{th}</tr></thead><tbody>{tb}</tbody></table></div>')
+            out.append(f'<div class="table" tabindex="0" role="region" aria-label="Scrollable data table"><table><thead><tr>{th}</tr></thead><tbody>{tb}</tbody></table></div>')
             continue
         if re.match(r"(- |\d+\. )", s):
             flush()

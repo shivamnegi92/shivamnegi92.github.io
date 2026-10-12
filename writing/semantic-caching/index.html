@@ -49,7 +49,7 @@
 <aside class="callout c-warning"><strong>Warning</strong> Embedding similarity measures <em>topical</em> closeness, not <em>logical</em> equivalence. Negations, entities, dates, and numbers are exactly where similar-sounding queries diverge.</aside>
 <h3 id="guard-the-hit">Guard the hit</h3>
 <p>Before serving a semantic hit, run cheap checks for exactly what the embedding blurs: numbers, names, and polarity.</p>
-<pre class="code"><span class="lang">python</span><code>import re
+<pre class="code" tabindex="0" role="region" aria-label="Scrollable python block"><span class="lang">python</span><code>import re
 
 POLARITY = {&quot;not&quot;, &quot;no&quot;, &quot;never&quot;, &quot;without&quot;, &quot;cannot&quot;}        # plus any &quot;n&#x27;t&quot;
 ACTIONS = {&quot;cancel&quot;, &quot;stop&quot;, &quot;start&quot;, &quot;add&quot;, &quot;remove&quot;}          # opposing verbs
@@ -79,7 +79,7 @@ def safe_hit(query, cached_query):
 <p>Key every entry by <strong>tenant, model version, prompt template version, retrieval index version, and decoding parameters</strong>. Version keys handle deploys automatically. They do not handle the world changing: prices, hours, and policies change without any deploy, so data-dependent answers still need TTLs or event-driven purges.</p>
 <aside class="callout c-warning"><strong>Warning</strong> A shared semantic cache is an attack surface. If one user can get a poisoned answer (for example via prompt injection) written into the cache, it is served to everyone who asks a similar question. Only write entries produced from non-personalized, injection-screened contexts, and never let one session create entries served to others without review.</aside>
 <h2 id="measure-the-cache-like-a-model">Measure the cache like a model</h2>
-<div class="table"><table><thead><tr><th>Metric</th><th>Why it matters</th></tr></thead><tbody><tr><td>Hit rate</td><td>Savings</td></tr><tr><td>Hit precision (sampled, human-labeled)</td><td>Correctness of served hits</td></tr><tr><td>p50 latency on hits vs. misses</td><td>User-visible speedup</td></tr><tr><td>Cost saved per day</td><td>The business case</td></tr><tr><td>Stale-hit rate after deploys</td><td>Invalidation health</td></tr></tbody></table></div>
+<div class="table" tabindex="0" role="region" aria-label="Scrollable data table"><table><thead><tr><th>Metric</th><th>Why it matters</th></tr></thead><tbody><tr><td>Hit rate</td><td>Savings</td></tr><tr><td>Hit precision (sampled, human-labeled)</td><td>Correctness of served hits</td></tr><tr><td>p50 latency on hits vs. misses</td><td>User-visible speedup</td></tr><tr><td>Cost saved per day</td><td>The business case</td></tr><tr><td>Stale-hit rate after deploys</td><td>Invalidation health</td></tr></tbody></table></div>
 <h2 id="key-takeaways">Key takeaways</h2>
 <ul><li>Layer exact, semantic, and prefix caches.</li><li>Choose the similarity threshold from your error budget, measured on labeled pairs from your own traffic.</li><li>Guard hits against negation, number, and action mismatches, and test the guard on real user input.</li><li>Never cache personalized responses across users, and treat a shared cache as an attack surface.</li><li>Version-scope keys for deploys, and use TTLs or purges for data that changes.</li></ul>
 <p><strong>Further reading:</strong> Runnable baseline: <a href="https://github.com/shivamnegi92/practical-ai-systems">semantic_cache in Practical AI Systems</a>, including documented false-hit cases.</p>

@@ -77,6 +77,9 @@ Renderer defects found in screenshots and fixed generally rather than per figure
 - Bar notes were clipped. They now wrap in a measured column.
 - Style markers (`*`, `!`, `~`) leaked as literal text. Labels are stripped before parsing, and a lint rule catches stacked markers.
 
+- axe's fresh 21-page run found one `scrollable-region-focusable` violation on the flagship: a code block and wide table could scroll but were not keyboard reachable. The generator now gives scrollable code/table regions `tabindex=0`, `role=region`, and an accessible name. Focused rerun: 0 axe violations; both regions appear in tab order; 390px page width remains exactly 390px and diagram wrappers swipe-scroll.
+- Dark-scheme emulation was unavailable in the final browser-tool run; dark-mode axe status is therefore not claimed as reverified in this final run.
+
 Final state:
 - Lint: 20/20 pass.
 - 100 diagrams, 0 literal style markers.
